@@ -1,3 +1,8 @@
 #nullable enable
 LettuceEncrypt.IAdditionalIssuersSource
 LettuceEncrypt.IAdditionalIssuersSource.GetAdditionalIssuersAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<System.Security.Cryptography.X509Certificates.X509Certificate2!>!>!
+LettuceEncrypt.IDomainSource
+LettuceEncrypt.IDomainSource.GetDomainsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string!, System.Collections.Generic.HashSet<string!>!>!>!
+LettuceEncrypt.LettuceEncryptDomains
+LettuceEncrypt.LettuceEncryptDomains.GetDomainsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<System.Collections.Generic.HashSet<string!>!>!>!
+LettuceEncrypt.LettuceEncryptDomains.LettuceEncryptDomains(Microsoft.Extensions.Options.IOptions<LettuceEncrypt.LettuceEncryptOptions!>! options, System.Collections.Generic.IEnumerable<LettuceEncrypt.IDomainSource!>! domainSources) -> void

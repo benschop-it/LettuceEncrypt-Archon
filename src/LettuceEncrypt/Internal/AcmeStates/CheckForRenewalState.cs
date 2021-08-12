@@ -13,6 +13,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
     {
         private readonly ILogger<CheckForRenewalState> _logger;
         private readonly IOptions<LettuceEncryptOptions> _options;
+        private readonly LettuceEncryptDomains _domains;
         private readonly CertificateSelector _selector;
         private readonly IClock _clock;
 
@@ -20,11 +21,13 @@ namespace LettuceEncrypt.Internal.AcmeStates
             AcmeStateMachineContext context,
             ILogger<CheckForRenewalState> logger,
             IOptions<LettuceEncryptOptions> options,
+            LettuceEncryptDomains domains,
             CertificateSelector selector,
             IClock clock) : base(context)
         {
             _logger = logger;
             _options = options;
+            _domains = domains;
             _selector = selector;
             _clock = clock;
         }
@@ -42,23 +45,25 @@ namespace LettuceEncrypt.Internal.AcmeStates
                     return MoveTo<TerminalState>();
                 }
 
-                var domainNames = _options.Value.DomainNames;
-                if (_logger.IsEnabled(LogLevel.Debug))
+                var domainSets = await _domains.GetDomainsAsync(cancellationToken);
+                foreach (var domainNames in domainSets)
                 {
-                    _logger.LogDebug("Checking certificates' renewals for {hostname}",
-                        string.Join(", ", domainNames));
-                }
-
-                foreach (var domainName in domainNames)
-                {
-                    if (!_selector.TryGet(domainName, out var cert)
-                        || cert == null
-                        || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
+                    if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        return MoveTo<BeginCertificateCreationState>();
+                        _logger.LogDebug("Checking certificates' renewals for {hostname}",
+                            string.Join(", ", domainNames));
+                    }
+
+                    foreach (var domainName in domainNames)
+                    {
+                        if (!_selector.TryGet(domainName, out var cert)
+                            || cert == null
+                            || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
+                        {
+                            return MoveTo<BeginCertificateCreationState>();
+                        }
                     }
                 }
-
                 await Task.Delay(checkPeriod.Value, cancellationToken);
             }
 

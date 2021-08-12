@@ -63,7 +63,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<ICertificateRepository>(x => x.GetRequiredService<X509CertStore>())
                 .AddSingleton<HttpChallengeResponseMiddleware>()
                 .AddSingleton<TlsAlpnChallengeResponder>()
-                .AddSingleton<IStartupFilter, HttpChallengeStartupFilter>();
+                .AddSingleton<IStartupFilter, HttpChallengeStartupFilter>()
+                .AddSingleton<LettuceEncryptDomains>();
 
             services.AddSingleton<IConfigureOptions<LettuceEncryptOptions>>(s =>
             {

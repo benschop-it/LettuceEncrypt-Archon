@@ -13,7 +13,6 @@ namespace LettuceEncrypt
     /// </summary>
     public interface IAdditionalIssuersSource
     {
-
         /// <summary>
         /// Gets available a collection of certificates that will be accepted as issuers for generated certificates.
         /// </summary>

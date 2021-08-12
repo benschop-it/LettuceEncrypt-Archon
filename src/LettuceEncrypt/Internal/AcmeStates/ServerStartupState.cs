@@ -2,36 +2,37 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace LettuceEncrypt.Internal.AcmeStates
 {
-    internal class ServerStartupState : SyncAcmeState
+    internal class ServerStartupState : AcmeState
     {
-        private readonly IOptions<LettuceEncryptOptions> _options;
+        private readonly LettuceEncryptDomains _domains;
         private readonly CertificateSelector _selector;
         private readonly ILogger<ServerStartupState> _logger;
 
         public ServerStartupState(
             AcmeStateMachineContext context,
-            IOptions<LettuceEncryptOptions> options,
+            LettuceEncryptDomains domains,
             CertificateSelector selector,
             ILogger<ServerStartupState> logger) :
             base(context)
         {
-            _options = options;
+            _domains = domains;
             _selector = selector;
             _logger = logger;
         }
 
-        public override IAcmeState MoveNext()
+        public override async Task<IAcmeState> MoveNextAsync(CancellationToken cancellationToken)
         {
-            var domainNames = _options.Value.DomainNames;
-            var hasCertForAllDomains = domainNames.All(_selector.HasCertForDomain);
+            var domainSets = await _domains.GetDomainsAsync(cancellationToken);
+            var hasCertForAllDomains = domainSets.All(set => set.All(_selector.HasCertForDomain));
             if (hasCertForAllDomains)
             {
-                _logger.LogDebug("Certificate for {domainNames} already found.", domainNames);
+                _logger.LogDebug("Certificate for {domainNames} already found.", domainSets);
                 return MoveTo<CheckForRenewalState>();
             }
 

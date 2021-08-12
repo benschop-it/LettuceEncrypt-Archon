@@ -155,7 +155,7 @@ namespace LettuceEncrypt.Internal
             return true;
         }
 
-        public async Task<X509Certificate2> CreateCertificateAsync(CancellationToken cancellationToken)
+        public async Task<X509Certificate2> CreateCertificateAsync(HashSet<string> domains, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_client == null)
@@ -167,7 +167,6 @@ namespace LettuceEncrypt.Internal
             var orders = await _client.GetOrdersAsync();
             if (orders.Any())
             {
-                var expectedDomains = new HashSet<string>(_options.Value.DomainNames);
                 foreach (var order in orders)
                 {
                     var orderDetails = await _client.GetOrderDetailsAsync(order);
@@ -181,7 +180,7 @@ namespace LettuceEncrypt.Internal
                         .Where(i => i.Type == IdentifierType.Dns)
                         .Select(s => s.Value);
 
-                    if (expectedDomains.SetEquals(orderDomains))
+                    if (domains.SetEquals(orderDomains))
                     {
                         _logger.LogDebug("Found an existing order for a certificate");
                         orderContext = order;
@@ -193,7 +192,7 @@ namespace LettuceEncrypt.Internal
             if (orderContext == null)
             {
                 _logger.LogDebug("Creating new order for a certificate");
-                orderContext = await _client.CreateOrderAsync(_options.Value.DomainNames);
+                orderContext = await _client.CreateOrderAsync(domains.ToArray());
             }
 
             cancellationToken.ThrowIfCancellationRequested();
