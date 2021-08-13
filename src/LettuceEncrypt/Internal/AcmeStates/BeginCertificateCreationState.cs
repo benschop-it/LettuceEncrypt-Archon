@@ -36,6 +36,8 @@ namespace LettuceEncrypt.Internal.AcmeStates
             var account = await _acmeCertificateFactory.GetOrCreateAccountAsync(cancellationToken);
             _logger.LogInformation("Using account {accountId}", account.Id);
 
+            var saveTasks = new List<Task>();
+
             foreach (var domainNames in domainSets)
             {
                 try
@@ -49,7 +51,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
                         cert.Subject,
                         cert.Thumbprint);
 
-                    await SaveCertificateAsync(cert, cancellationToken);
+                    saveTasks.Add(SaveCertificateAsync(cert, cancellationToken));
                 }
                 catch (Exception ex)
                 {
@@ -57,6 +59,8 @@ namespace LettuceEncrypt.Internal.AcmeStates
                     throw;
                 }
             }
+
+            await Task.WhenAll(saveTasks);
 
             return MoveTo<CheckForRenewalState>();
         }
