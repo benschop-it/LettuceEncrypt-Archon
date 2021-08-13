@@ -10,6 +10,8 @@
 
 See https://nuget.org/packages/LettuceEncrypt for more details.
     </PackageDescription>
+    <PackageId>LettuceEncrypt-Archon.Azure</PackageId>
+    <Product>LettuceEncrypt-Archon.Azure</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
