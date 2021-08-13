@@ -202,7 +202,7 @@ namespace LettuceEncrypt.Internal
             await Task.WhenAll(BeginValidateAllAuthorizations(authorizations, cancellationToken));
 
             cancellationToken.ThrowIfCancellationRequested();
-            return await CompleteCertificateRequestAsync(orderContext, cancellationToken);
+            return await CompleteCertificateRequestAsync(domains.ToArray(), orderContext, cancellationToken);
         }
 
         private IEnumerable<Task> BeginValidateAllAuthorizations(IEnumerable<IAuthorizationContext> authorizations,
@@ -276,7 +276,7 @@ namespace LettuceEncrypt.Internal
             throw new InvalidOperationException($"Failed to validate ownership of domainName '{domainName}'");
         }
 
-        private async Task<X509Certificate2> CompleteCertificateRequestAsync(IOrderContext order,
+        private async Task<X509Certificate2> CompleteCertificateRequestAsync(string[] domains, IOrderContext order,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -285,7 +285,7 @@ namespace LettuceEncrypt.Internal
                 throw new InvalidOperationException();
             }
 
-            var commonName = _options.Value.DomainNames[0];
+            var commonName = domains[0];
             _logger.LogDebug("Creating cert for {commonName}", commonName);
 
             var csrInfo = new CsrInfo
@@ -309,7 +309,7 @@ namespace LettuceEncrypt.Internal
                 }
             }
 
-            var pfx = pfxBuilder.Build("HTTPS Cert - " + _options.Value.DomainNames, string.Empty);
+            var pfx = pfxBuilder.Build("HTTPS Cert - " + domains, string.Empty);
             return new X509Certificate2(pfx, string.Empty, X509KeyStorageFlags.Exportable);
         }
     }
