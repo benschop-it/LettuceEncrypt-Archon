@@ -10,14 +10,14 @@ namespace LettuceEncrypt.Internal.AcmeStates
 {
     internal class ServerStartupState : AcmeState
     {
-        private readonly DomainLoader _domainLoader;
+        private readonly IDomainLoader _domainLoader;
         private readonly StartupCertificateLoader _certLoader;
         private readonly CertificateSelector _selector;
         private readonly ILogger<ServerStartupState> _logger;
 
         public ServerStartupState(
             AcmeStateMachineContext context,
-            DomainLoader domainLoader,
+            IDomainLoader domainLoader,
             StartupCertificateLoader certLoader,
             CertificateSelector selector,
             ILogger<ServerStartupState> logger) :
