@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Nate McMaster.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Security.KeyVault.Certificates;
@@ -103,6 +105,10 @@ namespace LettuceEncrypt.Azure.UnitTests
             const string Domain1 = "github.com";
             const string Domain2 = "azure.com";
 
+            var domainLoader = new Mock<IDomainLoader>();
+            domainLoader.Setup(x => x.GetDomainsAsync(default))
+                .Returns(() => Task.FromResult(new HashSet<string> { Domain1, Domain2 }));
+
             var secretClient = new Mock<SecretClient>();
             var secretClientFactory = new Mock<ISecretClientFactory>();
             secretClientFactory.Setup(c => c.Create()).Returns(secretClient.Object);
@@ -112,7 +118,7 @@ namespace LettuceEncrypt.Azure.UnitTests
 
             var repository = new AzureKeyVaultCertificateRepository(
                 Mock.Of<ICertificateClientFactory>(),
-                secretClientFactory.Object, Mock.Of<IDomainLoader>(),
+                secretClientFactory.Object, domainLoader.Object,
                 NullLogger<AzureKeyVaultCertificateRepository>.Instance);
 
             var certificates = await repository.GetCertificatesAsync(CancellationToken.None);

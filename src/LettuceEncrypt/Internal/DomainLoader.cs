@@ -15,7 +15,7 @@ namespace LettuceEncrypt
         private readonly IEnumerable<IDomainSource> _domainSources;
         private readonly ILogger<DomainLoader> _logger;
 
-        internal DomainLoader(IOptions<LettuceEncryptOptions> options,
+        public DomainLoader(IOptions<LettuceEncryptOptions> options,
             IEnumerable<IDomainSource> domainSources,
             ILogger<DomainLoader> logger)
         {
