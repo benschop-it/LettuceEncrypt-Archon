@@ -36,6 +36,8 @@ namespace LettuceEncrypt.Azure.Internal
 
         public async Task<IEnumerable<X509Certificate2>> GetCertificatesAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Searching for certificates in KeyVault");
+
             var certs = new List<X509Certificate2>();
 
             foreach (var domain in _encryptOptions.Value.DomainNames)
