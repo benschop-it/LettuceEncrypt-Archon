@@ -12,7 +12,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace LettuceEncrypt.Internal
 {
@@ -22,7 +21,7 @@ namespace LettuceEncrypt.Internal
     internal class AcmeCertificateLoader : BackgroundService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly IOptions<LettuceEncryptOptions> _options;
+        private readonly LettuceEncryptDomains _domains;
         private readonly ILogger _logger;
 
         private readonly IServer _server;
@@ -30,13 +29,13 @@ namespace LettuceEncrypt.Internal
 
         public AcmeCertificateLoader(
             IServiceScopeFactory serviceScopeFactory,
-            IOptions<LettuceEncryptOptions> options,
+            LettuceEncryptDomains domains,
             ILogger<AcmeCertificateLoader> logger,
             IServer server,
             IConfiguration config)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            _options = options;
+            _domains = domains;
             _logger = logger;
             _server = server;
             _config = config;
@@ -58,13 +57,6 @@ namespace LettuceEncrypt.Internal
                 _logger.LogWarning(
                     "LettuceEncrypt does not work with apps hosting in IIS. IIS does not allow for dynamic HTTPS certificate binding." +
                     "Skipping certificate provisioning.");
-                return;
-            }
-
-            // load certificates in the background
-            if (!LettuceEncryptDomainNamesWereConfigured())
-            {
-                _logger.LogInformation("No domain names were configured");
                 return;
             }
 
@@ -92,12 +84,6 @@ namespace LettuceEncrypt.Internal
             {
                 _logger.LogError(0, ex, "ACME state machine encountered unhandled error");
             }
-        }
-
-        private bool LettuceEncryptDomainNamesWereConfigured()
-        {
-            return _options.Value.DomainNames
-                .Any(w => !string.Equals("localhost", w, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
