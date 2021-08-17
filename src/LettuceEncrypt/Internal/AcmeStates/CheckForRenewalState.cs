@@ -13,7 +13,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
     {
         private readonly ILogger<CheckForRenewalState> _logger;
         private readonly IOptions<LettuceEncryptOptions> _options;
-        private readonly LettuceEncryptDomains _domains;
+        private readonly IDomainLoader _domains;
         private readonly CertificateSelector _selector;
         private readonly IClock _clock;
 
@@ -21,7 +21,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
             AcmeStateMachineContext context,
             ILogger<CheckForRenewalState> logger,
             IOptions<LettuceEncryptOptions> options,
-            LettuceEncryptDomains domains,
+            IDomainLoader domains,
             CertificateSelector selector,
             IClock clock) : base(context)
         {
@@ -45,23 +45,19 @@ namespace LettuceEncrypt.Internal.AcmeStates
                     return MoveTo<TerminalState>();
                 }
 
-                var domainSets = await _domains.GetDomainsAsync(cancellationToken);
-                foreach (var domainNames in domainSets)
+                var domains = await _domains.GetDomainsAsync(cancellationToken);
+                foreach (var domain in domains)
                 {
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogDebug("Checking certificates' renewals for {hostname}",
-                            string.Join(", ", domainNames));
+                        _logger.LogDebug("Checking certificates' renewals for {hostname}", domain);
                     }
 
-                    foreach (var domainName in domainNames)
+                    if (!_selector.TryGet(domain, out var cert)
+                           || cert == null
+                           || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
                     {
-                        if (!_selector.TryGet(domainName, out var cert)
-                            || cert == null
-                            || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
-                        {
-                            return MoveTo<BeginCertificateCreationState>();
-                        }
+                        return MoveTo<BeginCertificateCreationState>();
                     }
                 }
                 await Task.Delay(checkPeriod.Value, cancellationToken);

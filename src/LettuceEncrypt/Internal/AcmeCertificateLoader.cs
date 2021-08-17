@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LettuceEncrypt.Internal.AcmeStates;
@@ -21,7 +20,6 @@ namespace LettuceEncrypt.Internal
     internal class AcmeCertificateLoader : BackgroundService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly LettuceEncryptDomains _domains;
         private readonly ILogger _logger;
 
         private readonly IServer _server;
@@ -29,13 +27,11 @@ namespace LettuceEncrypt.Internal
 
         public AcmeCertificateLoader(
             IServiceScopeFactory serviceScopeFactory,
-            LettuceEncryptDomains domains,
             ILogger<AcmeCertificateLoader> logger,
             IServer server,
             IConfiguration config)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            _domains = domains;
             _logger = logger;
             _server = server;
             _config = config;

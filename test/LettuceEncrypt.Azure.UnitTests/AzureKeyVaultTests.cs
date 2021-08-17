@@ -83,7 +83,7 @@ namespace LettuceEncrypt.Azure.UnitTests
             var repository = new AzureKeyVaultCertificateRepository(
                 certClientFactory.Object,
                 Mock.Of<ISecretClientFactory>(),
-                options,
+                Mock.Of<IDomainLoader>(),
                 NullLogger<AzureKeyVaultCertificateRepository>.Instance);
             foreach (var domain in options.Value.DomainNames)
             {
@@ -112,7 +112,7 @@ namespace LettuceEncrypt.Azure.UnitTests
 
             var repository = new AzureKeyVaultCertificateRepository(
                 Mock.Of<ICertificateClientFactory>(),
-                secretClientFactory.Object, options,
+                secretClientFactory.Object, Mock.Of<IDomainLoader>(),
                 NullLogger<AzureKeyVaultCertificateRepository>.Instance);
 
             var certificates = await repository.GetCertificatesAsync(CancellationToken.None);
