@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<IConsole>(PhysicalConsole.Singleton)
                 .AddSingleton<IClock, SystemClock>()
                 .AddSingleton<TermsOfServiceChecker>()
-                .AddSingleton<IHostedService, StartupCertificateLoader>()
+                .AddSingleton<StartupCertificateLoader>()
                 .AddSingleton<ICertificateSource, DeveloperCertLoader>()
                 .AddSingleton<IHostedService, AcmeCertificateLoader>()
                 .AddSingleton<AcmeCertificateFactory>()

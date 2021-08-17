@@ -34,9 +34,9 @@ namespace LettuceEncrypt.UnitTests
 
             var startupLoader = new StartupCertificateLoader(
                 new[] { source1.Object, source2.Object },
-                selector.Object);
+                selector.Object, NullLogger<StartupCertificateLoader>.Instance);
 
-            await startupLoader.StartAsync(default);
+            await startupLoader.LoadAsync(default);
 
             selector.VerifyAll();
             source1.VerifyAll();

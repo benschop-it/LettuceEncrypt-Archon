@@ -6,24 +6,27 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace LettuceEncrypt.Internal
 {
-    internal class StartupCertificateLoader : IHostedService
+    internal class StartupCertificateLoader
     {
         private readonly IEnumerable<ICertificateSource> _certSources;
         private readonly CertificateSelector _selector;
+        private readonly ILogger<StartupCertificateLoader> _logger;
 
         public StartupCertificateLoader(
             IEnumerable<ICertificateSource> certSources,
-            CertificateSelector selector)
+            CertificateSelector selector,
+            ILogger<StartupCertificateLoader> logger)
         {
             _certSources = certSources;
             _selector = selector;
+            _logger = logger;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public async Task LoadAsync(CancellationToken cancellationToken)
         {
             var allCerts = new List<X509Certificate2>();
             foreach (var certSource in _certSources)
@@ -35,11 +38,9 @@ namespace LettuceEncrypt.Internal
             // Add newer certificates first. This avoid potentially unnecessary cert validations on older certificates
             foreach (var cert in allCerts.OrderByDescending(c => c.NotAfter))
             {
+                _logger.LogDebug("Loading certificate: {certificate}", cert.FriendlyName);
                 _selector.Add(cert);
             }
         }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-            => Task.CompletedTask;
     }
 }
