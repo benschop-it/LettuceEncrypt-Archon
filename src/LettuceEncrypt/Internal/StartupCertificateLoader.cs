@@ -31,6 +31,8 @@ namespace LettuceEncrypt.Internal
             var allCerts = new List<X509Certificate2>();
             foreach (var certSource in _certSources)
             {
+                _logger.LogDebug("Loading certs from source {certSource}", certSource.GetType().Name);
+
                 var certs = await certSource.GetCertificatesAsync(cancellationToken);
                 allCerts.AddRange(certs);
             }
