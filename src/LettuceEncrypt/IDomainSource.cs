@@ -13,10 +13,10 @@ namespace LettuceEncrypt
     public interface IDomainSource
     {
         /// <summary>
-        /// Gets a collection of domains that will be consdered for creation/renewal. Certs are grouped by domain keys provided
+        /// Gets a collection of domains that will be consdered for creation/renewal.
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<Dictionary<string, HashSet<string>>> GetDomainsAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<string>> GetDomains(CancellationToken cancellationToken);
     }
 }

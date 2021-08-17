@@ -10,13 +10,12 @@ using Azure;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace LettuceEncrypt.Azure.Internal
 {
     internal class AzureKeyVaultCertificateRepository : ICertificateRepository, ICertificateSource
     {
-        private readonly IOptions<LettuceEncryptOptions> _encryptOptions;
+        private readonly IDomainLoader _domains;
         private readonly ILogger<AzureKeyVaultCertificateRepository> _logger;
         private readonly ICertificateClientFactory _certificateClientFactory;
         private readonly ISecretClientFactory _secretClientFactory;
@@ -24,13 +23,13 @@ namespace LettuceEncrypt.Azure.Internal
         public AzureKeyVaultCertificateRepository(
             ICertificateClientFactory certificateClientFactory,
             ISecretClientFactory secretClientFactory,
-            IOptions<LettuceEncryptOptions> encryptOptions,
+            IDomainLoader domains,
             ILogger<AzureKeyVaultCertificateRepository> logger)
         {
             _certificateClientFactory = certificateClientFactory ??
                                         throw new ArgumentNullException(nameof(_certificateClientFactory));
             _secretClientFactory = secretClientFactory ?? throw new ArgumentNullException(nameof(secretClientFactory));
-            _encryptOptions = encryptOptions ?? throw new ArgumentNullException(nameof(encryptOptions));
+            _domains = domains ?? throw new ArgumentNullException(nameof(domains));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -40,7 +39,9 @@ namespace LettuceEncrypt.Azure.Internal
 
             var certs = new List<X509Certificate2>();
 
-            foreach (var domain in _encryptOptions.Value.DomainNames)
+            var domains = await _domains.GetDomainsAsync(cancellationToken);
+
+            foreach (var domain in domains)
             {
                 var cert = await GetCertificateWithPrivateKeyAsync(domain, cancellationToken);
 

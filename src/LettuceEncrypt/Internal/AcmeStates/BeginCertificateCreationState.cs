@@ -16,36 +16,35 @@ namespace LettuceEncrypt.Internal.AcmeStates
         private readonly AcmeCertificateFactory _acmeCertificateFactory;
         private readonly CertificateSelector _selector;
         private readonly IEnumerable<ICertificateRepository> _certificateRepositories;
-        private readonly LettuceEncryptDomains _domains;
+        private readonly IDomainLoader _domainLoader;
 
         public BeginCertificateCreationState(AcmeStateMachineContext context, ILogger<ServerStartupState> logger,
             AcmeCertificateFactory acmeCertificateFactory, CertificateSelector selector,
-            IEnumerable<ICertificateRepository> certificateRepositories, LettuceEncryptDomains domains) : base(context)
+            IEnumerable<ICertificateRepository> certificateRepositories, IDomainLoader domainLoader) : base(context)
         {
             _logger = logger;
             _acmeCertificateFactory = acmeCertificateFactory;
             _selector = selector;
             _certificateRepositories = certificateRepositories;
-            _domains = domains;
+            _domainLoader = domainLoader;
         }
 
         public override async Task<IAcmeState> MoveNextAsync(CancellationToken cancellationToken)
         {
-            var domainSets = await _domains.GetDomainsAsync(cancellationToken);
+            var domains = await _domainLoader.GetDomainsAsync(cancellationToken);
 
             var account = await _acmeCertificateFactory.GetOrCreateAccountAsync(cancellationToken);
             _logger.LogInformation("Using account {accountId}", account.Id);
 
             var saveTasks = new List<Task>();
 
-            foreach (var domainNames in domainSets)
+            foreach (var domain in domains)
             {
                 try
                 {
-                    _logger.LogInformation("Creating certificate for {hostname}",
-                        string.Join(",", domainNames));
+                    _logger.LogInformation("Creating certificate for {hostname}", domain);
 
-                    var cert = await _acmeCertificateFactory.CreateCertificateAsync(domainNames, cancellationToken);
+                    var cert = await _acmeCertificateFactory.CreateCertificateAsync(new HashSet<string> { domain }, cancellationToken);
 
                     _logger.LogInformation("Created certificate {subjectName} ({thumbprint})",
                         cert.Subject,
@@ -55,7 +54,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostname}", domainNames);
+                    _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostname}", domain);
                     throw;
                 }
             }

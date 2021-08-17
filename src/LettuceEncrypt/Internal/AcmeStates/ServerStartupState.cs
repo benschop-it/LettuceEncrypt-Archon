@@ -10,20 +10,20 @@ namespace LettuceEncrypt.Internal.AcmeStates
 {
     internal class ServerStartupState : AcmeState
     {
-        private readonly LettuceEncryptDomains _domains;
+        private readonly DomainLoader _domainLoader;
         private readonly StartupCertificateLoader _certLoader;
         private readonly CertificateSelector _selector;
         private readonly ILogger<ServerStartupState> _logger;
 
         public ServerStartupState(
             AcmeStateMachineContext context,
-            LettuceEncryptDomains domains,
+            DomainLoader domainLoader,
             StartupCertificateLoader certLoader,
             CertificateSelector selector,
             ILogger<ServerStartupState> logger) :
             base(context)
         {
-            _domains = domains;
+            _domainLoader = domainLoader;
             _certLoader = certLoader;
             _selector = selector;
             _logger = logger;
@@ -34,11 +34,11 @@ namespace LettuceEncrypt.Internal.AcmeStates
             _logger.LogDebug("Loading existing certificates.");
             await _certLoader.LoadAsync(cancellationToken);
 
-            var domainSets = await _domains.GetDomainsAsync(cancellationToken);
-            var hasCertForAllDomains = domainSets.All(set => set.All(_selector.HasCertForDomain));
+            var domains = await _domainLoader.GetDomainsAsync(cancellationToken);
+            var hasCertForAllDomains = domains.All(_selector.HasCertForDomain);
             if (hasCertForAllDomains)
             {
-                _logger.LogDebug("Certificate for {domainNames} already found.", domainSets);
+                _logger.LogDebug("Certificate for {domainNames} already found.", domains);
                 return MoveTo<CheckForRenewalState>();
             }
 
