@@ -42,10 +42,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<ICertificateClientFactory, CertificateClientFactory>()
                 .AddSingleton<ISecretClientFactory, SecretClientFactory>();
 
-            services.AddSingleton<AzureKeyVaultCertificateRepository>();
-            services.AddSingleton<IAccountStore, AzureKeyVaultAccountStore>();
-            services.AddSingleton<ICertificateRepository>(x => x.GetRequiredService<AzureKeyVaultCertificateRepository>());
-            services.AddSingleton<ICertificateSource>(x => x.GetRequiredService<AzureKeyVaultCertificateRepository>());
+            services.TryAddSingleton<AzureKeyVaultCertificateRepository>();
+            services.TryAddSingleton<IAccountStore, AzureKeyVaultAccountStore>();
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<ICertificateRepository, AzureKeyVaultCertificateRepository>(x =>
+                    x.GetRequiredService<AzureKeyVaultCertificateRepository>()));
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<ICertificateSource, AzureKeyVaultCertificateRepository>(x =>
+                    x.GetRequiredService<AzureKeyVaultCertificateRepository>()));
+
             services.AddSingleton<IConfigureOptions<AzureKeyVaultLettuceEncryptOptions>>(s =>
             {
                 var config = s.GetService<IConfiguration?>();
