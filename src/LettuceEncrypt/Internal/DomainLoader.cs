@@ -11,9 +11,14 @@ namespace LettuceEncrypt
 {
     internal class DomainLoader : IDomainLoader
     {
+        private static readonly SemaphoreSlim s_sync = new SemaphoreSlim(1, 1);
+
         private readonly IOptions<LettuceEncryptOptions> _options;
         private readonly IEnumerable<IDomainSource> _domainSources;
         private readonly ILogger<DomainLoader> _logger;
+
+        private bool _useCache = false;
+        private HashSet<string> _domainCache = new HashSet<string>();
 
         public DomainLoader(IOptions<LettuceEncryptOptions> options,
             IEnumerable<IDomainSource> domainSources,
@@ -24,32 +29,63 @@ namespace LettuceEncrypt
             _logger = logger;
         }
 
+        internal async Task InvalidateCacheAsync()
+        {
+            await s_sync.WaitAsync();
+
+            try
+            {
+                _useCache = false;
+            }
+            catch
+            {
+                s_sync.Release();
+            }
+        }
+
         /// <summary>
         /// Load all domains from <see cref="LettuceEncryptOptions"/> and injected <see cref="IDomainSource"/>.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>Distinct set of domains to generate certs for.</returns>
-        public async Task<HashSet<string>> GetDomainsAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<string>> GetDomainsAsync(CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Loading domain sets");
-
-            var options = _options.Value;
-
-            var domains = new HashSet<string>();
-
-            if (options != null && options.DomainNames.Length > 0)
+            if (_useCache)
             {
-                domains.UnionWith(options.DomainNames);
+                return _domainCache;
             }
 
-            foreach (var domainSource in _domainSources)
-            {
-                _logger.LogDebug("Loading domains from {domainSource}", domainSource.GetType().Name);
+            await s_sync.WaitAsync();
 
-                domains.UnionWith(await domainSource.GetDomains(cancellationToken));
+            try
+            {
+                _logger.LogDebug("Loading domain sets");
+
+                var options = _options.Value;
+
+                var domains = new HashSet<string>();
+
+                if (options != null && options.DomainNames.Length > 0)
+                {
+                    domains.UnionWith(options.DomainNames);
+                }
+
+                foreach (var domainSource in _domainSources)
+                {
+                    _logger.LogDebug("Loading domains from {domainSource}", domainSource.GetType().Name);
+
+                    domains.UnionWith(await domainSource.GetDomains(cancellationToken));
+                }
+
+                _domainCache = domains;
+                _useCache = true;
+            }
+            finally
+            {
+                s_sync.Release();
             }
 
-            return domains;
+            return _domainCache;
         }
     }
 }

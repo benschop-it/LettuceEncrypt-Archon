@@ -13,7 +13,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
     {
         private readonly ILogger<CheckForRenewalState> _logger;
         private readonly IOptions<LettuceEncryptOptions> _options;
-        private readonly IDomainLoader _domains;
+        private readonly DomainLoader _domains;
         private readonly StartupCertificateLoader _certLoader;
         private readonly CertificateSelector _selector;
         private readonly IClock _clock;
@@ -22,7 +22,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
             AcmeStateMachineContext context,
             ILogger<CheckForRenewalState> logger,
             IOptions<LettuceEncryptOptions> options,
-            IDomainLoader domains,
+            DomainLoader domains,
             StartupCertificateLoader certLoader,
             CertificateSelector selector,
             IClock clock) : base(context)
@@ -47,6 +47,8 @@ namespace LettuceEncrypt.Internal.AcmeStates
                         nameof(AcmeCertificateLoader));
                     return MoveTo<TerminalState>();
                 }
+
+                await _domains.InvalidateCacheAsync();
 
                 _logger.LogDebug("Loading existing certificates.");
                 await _certLoader.LoadAsync(cancellationToken);

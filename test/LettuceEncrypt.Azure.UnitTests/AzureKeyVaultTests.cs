@@ -106,7 +106,7 @@ namespace LettuceEncrypt.Azure.UnitTests
 
             var domainLoader = new Mock<IDomainLoader>();
             domainLoader.Setup(x => x.GetDomainsAsync(default))
-                .Returns(() => Task.FromResult(new HashSet<string> { Domain1, Domain2 }));
+                .Returns(() => Task.FromResult(new HashSet<string> { Domain1, Domain2 } as IReadOnlyCollection<string>));
 
             var secretClient = new Mock<SecretClient>();
             var secretClientFactory = new Mock<ISecretClientFactory>();

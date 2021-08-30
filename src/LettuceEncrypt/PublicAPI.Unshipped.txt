@@ -2,6 +2,6 @@
 LettuceEncrypt.IAdditionalIssuersSource
 LettuceEncrypt.IAdditionalIssuersSource.GetAdditionalIssuersAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<System.Security.Cryptography.X509Certificates.X509Certificate2!>!>!
 LettuceEncrypt.IDomainLoader
-LettuceEncrypt.IDomainLoader.GetDomainsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.HashSet<string!>!>!
+LettuceEncrypt.IDomainLoader.GetDomainsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyCollection<string!>!>!
 LettuceEncrypt.IDomainSource
 LettuceEncrypt.IDomainSource.GetDomains(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string!>!>!
