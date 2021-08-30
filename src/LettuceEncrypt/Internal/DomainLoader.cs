@@ -29,15 +29,15 @@ namespace LettuceEncrypt
             _logger = logger;
         }
 
-        internal async Task InvalidateCacheAsync()
+        internal async Task InvalidateCacheAsync(CancellationToken cancellationToken)
         {
-            await s_sync.WaitAsync();
+            await s_sync.WaitAsync(cancellationToken);
 
             try
             {
                 _useCache = false;
             }
-            catch
+            finally
             {
                 s_sync.Release();
             }
@@ -55,7 +55,7 @@ namespace LettuceEncrypt
                 return _domainCache;
             }
 
-            await s_sync.WaitAsync();
+            await s_sync.WaitAsync(cancellationToken);
 
             try
             {
