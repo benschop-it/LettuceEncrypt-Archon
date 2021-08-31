@@ -6,31 +6,46 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using LettuceEncrypt.Internal.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace LettuceEncrypt.Internal.AcmeStates
 {
     internal class BeginCertificateCreationState : AcmeState
     {
         private readonly ILogger<ServerStartupState> _logger;
+        private readonly IOptions<LettuceEncryptOptions> _options;
         private readonly AcmeCertificateFactory _acmeCertificateFactory;
         private readonly CertificateSelector _selector;
         private readonly IEnumerable<ICertificateRepository> _certificateRepositories;
         private readonly IDomainLoader _domainLoader;
+        private readonly IClock _clock;
 
-        public BeginCertificateCreationState(AcmeStateMachineContext context, ILogger<ServerStartupState> logger,
-            AcmeCertificateFactory acmeCertificateFactory, CertificateSelector selector,
-            IEnumerable<ICertificateRepository> certificateRepositories, IDomainLoader domainLoader) : base(context)
+        public BeginCertificateCreationState(
+            AcmeStateMachineContext context,
+            ILogger<ServerStartupState> logger,
+            IOptions<LettuceEncryptOptions> options,
+            AcmeCertificateFactory acmeCertificateFactory,
+            CertificateSelector selector,
+            IEnumerable<ICertificateRepository> certificateRepositories,
+            IDomainLoader domainLoader,
+            IClock clock) : base(context)
         {
             _logger = logger;
+            _options = options;
             _acmeCertificateFactory = acmeCertificateFactory;
             _selector = selector;
             _certificateRepositories = certificateRepositories;
             _domainLoader = domainLoader;
+            _clock = clock;
         }
 
         public override async Task<IAcmeState> MoveNextAsync(CancellationToken cancellationToken)
         {
+            var checkPeriod = _options.Value.RenewalCheckPeriod;
+            var daysInAdvance = _options.Value.RenewDaysInAdvance;
+
             var domains = await _domainLoader.GetDomainsAsync(cancellationToken);
 
             var account = await _acmeCertificateFactory.GetOrCreateAccountAsync(cancellationToken);
@@ -40,17 +55,26 @@ namespace LettuceEncrypt.Internal.AcmeStates
 
             foreach (var domain in domains)
             {
+                if (checkPeriod.HasValue && daysInAdvance.HasValue
+                    && _selector.TryGet(domain, out var cert)
+                    && cert != null
+                    && cert.NotAfter > _clock.Now.DateTime + daysInAdvance.Value)
+                {
+                    _logger.LogInformation("Skipping {hostname} since cert already exists and is valid", domain);
+                    continue;
+                }
+
                 try
                 {
                     _logger.LogInformation("Creating certificate for {hostname}", domain);
 
-                    var cert = await _acmeCertificateFactory.CreateCertificateAsync(new HashSet<string> { domain }, cancellationToken);
+                    var newCert = await _acmeCertificateFactory.CreateCertificateAsync(new HashSet<string> { domain }, cancellationToken);
 
                     _logger.LogInformation("Created certificate {subjectName} ({thumbprint})",
-                        cert.Subject,
-                        cert.Thumbprint);
+                        newCert.Subject,
+                        newCert.Thumbprint);
 
-                    saveTasks.Add(SaveCertificateAsync(cert, cancellationToken));
+                    saveTasks.Add(SaveCertificateAsync(newCert, cancellationToken));
                 }
                 catch (Exception ex)
                 {
