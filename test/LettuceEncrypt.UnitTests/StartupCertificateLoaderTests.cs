@@ -23,7 +23,8 @@ namespace LettuceEncrypt.UnitTests
 
             var selector = new Mock<CertificateSelector>(
                 Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance);
+                NullLogger<CertificateSelector>.Instance,
+                new InMemoryRuntimeCertificateStore());
 
             selector
                 .Setup(s => s.Add(testCert))
