@@ -24,7 +24,8 @@ namespace LettuceEncrypt.UnitTests
             var testCert = CreateTestCert(CommonName);
             var selector = new CertificateSelector(
                 Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance);
+                NullLogger<CertificateSelector>.Instance,
+                new InMemoryRuntimeCertificateStore());
 
             selector.Add(testCert);
 
@@ -44,7 +45,8 @@ namespace LettuceEncrypt.UnitTests
             var testCert = CreateTestCert(domainNames);
             var selector = new CertificateSelector(
                 Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance);
+                NullLogger<CertificateSelector>.Instance,
+                new InMemoryRuntimeCertificateStore());
 
             selector.Add(testCert);
 
@@ -63,7 +65,8 @@ namespace LettuceEncrypt.UnitTests
 
             var selector = new CertificateSelector(
                 Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance);
+                NullLogger<CertificateSelector>.Instance,
+                new InMemoryRuntimeCertificateStore());
 
             selector.Add(fiveDays);
             selector.Add(tenDays);

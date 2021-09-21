@@ -47,6 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<ICertificateAuthorityConfiguration, DefaultCertificateAuthorityConfiguration>();
 
             services
+                .AddSingleton<IRuntimeCertificateStore, InMemoryRuntimeCertificateStore>()
                 .AddSingleton<CertificateSelector>()
                 .AddSingleton<IServerCertificateSelector>(s => s.GetRequiredService<CertificateSelector>())
                 .AddSingleton<IConsole>(PhysicalConsole.Singleton)
