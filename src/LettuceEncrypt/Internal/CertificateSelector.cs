@@ -15,29 +15,25 @@ namespace LettuceEncrypt.Internal
 {
     internal class CertificateSelector : IServerCertificateSelector
     {
-        private readonly ConcurrentDictionary<string, X509Certificate2> _certs =
-            new(StringComparer.OrdinalIgnoreCase);
-
-        private readonly ConcurrentDictionary<string, X509Certificate2> _challengeCerts =
-            new(StringComparer.OrdinalIgnoreCase);
-
         private readonly IOptions<LettuceEncryptOptions> _options;
         private readonly ILogger<CertificateSelector> _logger;
+        private readonly IRuntimeCertificateStore _runtimeCertificateStore;
 
-        public CertificateSelector(IOptions<LettuceEncryptOptions> options, ILogger<CertificateSelector> logger)
+        public CertificateSelector(IOptions<LettuceEncryptOptions> options, ILogger<CertificateSelector> logger, IRuntimeCertificateStore runtimeCertificateStore)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _runtimeCertificateStore = runtimeCertificateStore;
         }
 
-        public IEnumerable<string> SupportedDomains => _certs.Keys;
+        public IEnumerable<string> SupportedDomains => _runtimeCertificateStore.GetAllCertDomains();
 
         public virtual void Add(X509Certificate2 certificate)
         {
             var preloaded = false;
             foreach (var dnsName in X509CertificateHelpers.GetAllDnsNames(certificate))
             {
-                var selectedCert = AddWithDomainName(_certs, dnsName, certificate);
+                var selectedCert = _runtimeCertificateStore.AddCertWithDomainName(dnsName, certificate);
 
                 // Call preload once per certificate, but only if the cetificate is actually selected to be used
                 // for this domain. This is a small optimization which avoids preloading on a cert that may not be used.
@@ -49,17 +45,17 @@ namespace LettuceEncrypt.Internal
             }
         }
 
-        public void AddChallengeCert(X509Certificate2 certificate)
+        public virtual void AddChallengeCert(X509Certificate2 certificate)
         {
             foreach (var dnsName in X509CertificateHelpers.GetAllDnsNames(certificate))
             {
-                AddWithDomainName(_challengeCerts, dnsName, certificate);
+                _runtimeCertificateStore.AddChallengeCertWithDomainName(dnsName, certificate);
             }
         }
 
-        public void ClearChallengeCert(string domainName)
+        public void ClearChallengeCert(string dnsName)
         {
-            _challengeCerts.TryRemove(domainName, out _);
+            _runtimeCertificateStore.RemoveChallengeCert(dnsName);
         }
 
         /// <summary>
@@ -86,18 +82,18 @@ namespace LettuceEncrypt.Internal
                 });
         }
 
-        public bool HasCertForDomain(string domainName) => _certs.ContainsKey(domainName);
+        public bool HasCertForDomain(string domainName) => _runtimeCertificateStore.ContainsCertForDomain(domainName);
 
         public X509Certificate2? Select(ConnectionContext context, string? domainName)
         {
 #if NETCOREAPP3_1_OR_GREATER
-            if (_challengeCerts.Count > 0)
+            if (_runtimeCertificateStore.AnyChallengeCert())
             {
                 // var sslStream = context.Features.Get<SslStream>();
                 // sslStream.NegotiatedApplicationProtocol hasn't been set yet, so we have to assume that
                 // if ALPN challenge certs are configured, we must respond with those.
 
-                if (domainName != null && _challengeCerts.TryGetValue(domainName, out var challengeCert))
+                if (domainName != null && _runtimeCertificateStore.GetChallengeCert(domainName, out var challengeCert))
                 {
                     _logger.LogTrace("Using ALPN challenge cert for {domainName}", domainName);
 
@@ -109,22 +105,22 @@ namespace LettuceEncrypt.Internal
 #error Update TFMs
 #endif
 
-            if (domainName == null || !_certs.TryGetValue(domainName, out var retVal))
+            if (domainName == null || !_runtimeCertificateStore.GetCert(domainName, out var cert))
             {
                 return _options.Value.FallbackCertificate;
             }
 
-            return retVal;
+            return cert;
         }
 
         public void Reset(string domainName)
         {
-            _certs.TryRemove(domainName, out var _);
+            _runtimeCertificateStore.RemoveCert(domainName);
         }
 
         public bool TryGet(string domainName, out X509Certificate2? certificate)
         {
-            return _certs.TryGetValue(domainName, out certificate);
+            return _runtimeCertificateStore.GetCert(domainName, out certificate);
         }
 
         private void PreloadIntermediateCertificates(X509Certificate2 certificate)

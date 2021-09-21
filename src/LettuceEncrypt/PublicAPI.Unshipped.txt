@@ -5,3 +5,13 @@ LettuceEncrypt.IDomainLoader
 LettuceEncrypt.IDomainLoader.GetDomainsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyCollection<string!>!>!
 LettuceEncrypt.IDomainSource
 LettuceEncrypt.IDomainSource.GetDomains(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string!>!>!
+LettuceEncrypt.IRuntimeCertificateStore
+LettuceEncrypt.IRuntimeCertificateStore.AddCertWithDomainName(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Security.Cryptography.X509Certificates.X509Certificate2!
+LettuceEncrypt.IRuntimeCertificateStore.AddChallengeCertWithDomainName(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Security.Cryptography.X509Certificates.X509Certificate2!
+LettuceEncrypt.IRuntimeCertificateStore.AnyChallengeCert() -> bool
+LettuceEncrypt.IRuntimeCertificateStore.ContainsCertForDomain(string! domainName) -> bool
+LettuceEncrypt.IRuntimeCertificateStore.GetAllCertDomains() -> System.Collections.Generic.IEnumerable<string!>!
+LettuceEncrypt.IRuntimeCertificateStore.GetCert(string! domainName, out System.Security.Cryptography.X509Certificates.X509Certificate2? certificate) -> bool
+LettuceEncrypt.IRuntimeCertificateStore.GetChallengeCert(string! domainName, out System.Security.Cryptography.X509Certificates.X509Certificate2? certificate) -> bool
+LettuceEncrypt.IRuntimeCertificateStore.RemoveCert(string! domainName) -> bool
+LettuceEncrypt.IRuntimeCertificateStore.RemoveChallengeCert(string! domainName) -> bool
