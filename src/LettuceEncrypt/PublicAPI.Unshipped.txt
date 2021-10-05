@@ -5,6 +5,9 @@ LettuceEncrypt.IDomainLoader
 LettuceEncrypt.IDomainLoader.GetDomainsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyCollection<string!>!>!
 LettuceEncrypt.IDomainSource
 LettuceEncrypt.IDomainSource.GetDomains(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string!>!>!
+LettuceEncrypt.IHttpChallengeResponseStore
+LettuceEncrypt.IHttpChallengeResponseStore.AddChallengeResponse(string! token, string! response) -> void
+LettuceEncrypt.IHttpChallengeResponseStore.TryGetResponse(string! token, out string? value) -> bool
 LettuceEncrypt.IRuntimeCertificateStore
 LettuceEncrypt.IRuntimeCertificateStore.AddCertWithDomainName(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Security.Cryptography.X509Certificates.X509Certificate2!
 LettuceEncrypt.IRuntimeCertificateStore.AddChallengeCertWithDomainName(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Security.Cryptography.X509Certificates.X509Certificate2!
