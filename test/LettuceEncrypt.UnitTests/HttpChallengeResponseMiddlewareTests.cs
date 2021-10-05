@@ -3,7 +3,6 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using LettuceEncrypt.Internal;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
