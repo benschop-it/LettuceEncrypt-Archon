@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable once CheckNamespace
@@ -55,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<TermsOfServiceChecker>()
                 .AddSingleton<StartupCertificateLoader>()
                 .AddSingleton<ICertificateSource, DeveloperCertLoader>()
-                .AddSingleton<IHostedService, AcmeCertificateLoader>()
+                .AddSingleton<IAcmeCertificateLoader, AcmeCertificateLoader>()
                 .AddSingleton<AcmeCertificateFactory>()
                 .AddSingleton<AcmeClientFactory>()
                 .AddSingleton<IHttpChallengeResponseStore, InMemoryHttpChallengeResponseStore>()

@@ -17,7 +17,7 @@ namespace LettuceEncrypt.Internal
     /// <summary>
     /// This starts the ACME state machine, which handles certificate generation and renewal
     /// </summary>
-    internal class AcmeCertificateLoader : BackgroundService
+    internal class AcmeCertificateLoader : BackgroundService, IAcmeCertificateLoader
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger _logger;
