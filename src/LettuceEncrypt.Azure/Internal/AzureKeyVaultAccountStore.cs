@@ -44,6 +44,11 @@ namespace LettuceEncrypt.Azure.Internal
                 await secretClient.SetSecretAsync(secretName, secretValue, cancellationToken);
                 _logger.LogInformation("Saved account information to Azure Key Vault as {secretName}", secretName);
             }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Cancellation requested, exiting.");
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save account information to Azure Key Vault as {secretName}",
@@ -69,6 +74,11 @@ namespace LettuceEncrypt.Azure.Internal
                     secret.Value.Properties.Version);
 
                 return JsonSerializer.Deserialize<AccountModel>(secret.Value.Value);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Cancellation requested, exiting.");
+                throw;
             }
             catch (RequestFailedException ex) when (ex.Status == 404)
             {

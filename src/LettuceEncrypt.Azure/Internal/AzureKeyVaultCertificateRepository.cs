@@ -67,6 +67,11 @@ namespace LettuceEncrypt.Azure.Internal
 
                 return new X509Certificate2(certificate.Value.Cer);
             }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Cancellation requested, exiting.");
+                throw;
+            }
             catch (RequestFailedException ex) when (ex.Status == 404)
             {
                 _logger.LogWarning("Could not find certificate for {domainName} in Azure KeyVault", domainName);
@@ -103,6 +108,11 @@ namespace LettuceEncrypt.Azure.Internal
                     domainName, cert.Thumbprint);
 
                 return cert;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Cancellation requested, exiting.");
+                throw;
             }
             catch (RequestFailedException ex) when (ex.Status == 404)
             {
