@@ -21,24 +21,46 @@ namespace LettuceEncrypt
         Task<IEnumerable<IDomainCert>> GetDomains(CancellationToken cancellationToken);
     }
 
+    /// <summary>
+    /// Defines a certificate request with one or multiple domains
+    /// </summary>
     public interface IDomainCert
     {
+        /// <summary>
+        /// The primary domain which will be assigned the subject name
+        /// </summary>
         public string PrimaryDomain { get; }
+
+        /// <summary>
+        /// Ordered domains the cert should be requested for, including <see cref="PrimaryDomain"/>
+        /// </summary>
         public IEnumerable<string> Domains { get; }
     }
 
+    /// <summary>
+    /// Default single domain cert implemenation
+    /// </summary>
     public class SingleDomainCert : IDomainCert
     {
+        /// <inheritdoc/>
         public string PrimaryDomain { get; set; } = default!;
 
+        /// <inheritdoc/>
         public IEnumerable<string> Domains => new[] { PrimaryDomain };
     }
 
+    /// <summary>
+    /// Default multiple domain cert implementation
+    /// </summary>
     public class MultipleDomainCert : IDomainCert
     {
+        /// <inheritdoc/>
         public string PrimaryDomain { get; set; } = default!;
+
+        /// <inheritdoc/>
         public SortedSet<string> AlternateDomains { get; set; } = default!;
 
+        /// <inheritdoc/>
         public IEnumerable<string> Domains
         {
             get
