@@ -17,6 +17,6 @@ namespace LettuceEncrypt
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A collection of domains.</returns>
-        Task<IReadOnlyCollection<string>> GetDomainsAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken);
     }
 }

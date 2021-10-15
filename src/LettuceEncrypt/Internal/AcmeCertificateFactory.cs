@@ -155,7 +155,7 @@ namespace LettuceEncrypt.Internal
             return true;
         }
 
-        public async Task<X509Certificate2> CreateCertificateAsync(HashSet<string> domains, CancellationToken cancellationToken)
+        public async Task<X509Certificate2> CreateCertificateAsync(ISet<string> domains, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_client == null)
