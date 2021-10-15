@@ -39,11 +39,11 @@ namespace LettuceEncrypt.Azure.Internal
 
             var certs = new List<X509Certificate2>();
 
-            var domains = await _domains.GetDomainsAsync(cancellationToken);
+            var domains = await _domains.GetDomainCertsAsync(cancellationToken);
 
             foreach (var domain in domains)
             {
-                var cert = await GetCertificateWithPrivateKeyAsync(domain, cancellationToken);
+                var cert = await GetCertificateWithPrivateKeyAsync(domain.PrimaryDomain, cancellationToken);
 
                 if (cert != null)
                 {

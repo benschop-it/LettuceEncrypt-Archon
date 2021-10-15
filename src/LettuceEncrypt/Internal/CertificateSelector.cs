@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using McMaster.AspNetCore.Kestrel.Certificates;
@@ -87,6 +88,7 @@ namespace LettuceEncrypt.Internal
         }
 
         public bool HasCertForDomain(string domainName) => _certs.ContainsKey(domainName);
+        public bool HasCertForDomain(IDomainCert domainCert) => domainCert.Domains.All(_certs.ContainsKey);
 
         public X509Certificate2? Select(ConnectionContext context, string? domainName)
         {

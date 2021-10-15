@@ -1,7 +1,22 @@
 #nullable enable
 LettuceEncrypt.IAdditionalIssuersSource
 LettuceEncrypt.IAdditionalIssuersSource.GetAdditionalIssuersAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<System.Security.Cryptography.X509Certificates.X509Certificate2!>!>!
+LettuceEncrypt.IDomainCert
+LettuceEncrypt.IDomainCert.Domains.get -> System.Collections.Generic.IEnumerable<string!>!
+LettuceEncrypt.IDomainCert.PrimaryDomain.get -> string!
 LettuceEncrypt.IDomainLoader
-LettuceEncrypt.IDomainLoader.GetDomainsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyCollection<string!>!>!
+LettuceEncrypt.IDomainLoader.GetDomainCertsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<LettuceEncrypt.IDomainCert!>!>!
 LettuceEncrypt.IDomainSource
-LettuceEncrypt.IDomainSource.GetDomains(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string!>!>!
+LettuceEncrypt.IDomainSource.GetDomains(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<LettuceEncrypt.IDomainCert!>!>!
+LettuceEncrypt.MultipleDomainCert
+LettuceEncrypt.MultipleDomainCert.AlternateDomains.get -> System.Collections.Generic.SortedSet<string!>!
+LettuceEncrypt.MultipleDomainCert.AlternateDomains.set -> void
+LettuceEncrypt.MultipleDomainCert.Domains.get -> System.Collections.Generic.IEnumerable<string!>!
+LettuceEncrypt.MultipleDomainCert.MultipleDomainCert() -> void
+LettuceEncrypt.MultipleDomainCert.PrimaryDomain.get -> string!
+LettuceEncrypt.MultipleDomainCert.PrimaryDomain.set -> void
+LettuceEncrypt.SingleDomainCert
+LettuceEncrypt.SingleDomainCert.Domains.get -> System.Collections.Generic.IEnumerable<string!>!
+LettuceEncrypt.SingleDomainCert.PrimaryDomain.get -> string!
+LettuceEncrypt.SingleDomainCert.PrimaryDomain.set -> void
+LettuceEncrypt.SingleDomainCert.SingleDomainCert() -> void

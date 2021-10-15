@@ -53,19 +53,22 @@ namespace LettuceEncrypt.Internal.AcmeStates
                 _logger.LogDebug("Loading existing certificates.");
                 await _certLoader.LoadAsync(cancellationToken);
 
-                var domains = await _domains.GetDomainsAsync(cancellationToken);
-                foreach (var domain in domains)
+                var domainCerts = await _domains.GetDomainCertsAsync(cancellationToken);
+                foreach (var domainCert in domainCerts)
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
+                    foreach (var domain in domainCert.Domains)
                     {
-                        _logger.LogDebug("Checking certificates' renewals for {hostname}", domain);
-                    }
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                        {
+                            _logger.LogDebug("Checking certificates' renewals for {hostname}", domain);
+                        }
 
-                    if (!_selector.TryGet(domain, out var cert)
-                           || cert == null
-                           || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
-                    {
-                        return MoveTo<BeginCertificateCreationState>();
+                        if (!_selector.TryGet(domain, out var cert)
+                               || cert == null
+                               || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
+                        {
+                            return MoveTo<BeginCertificateCreationState>();
+                        }
                     }
                 }
                 await Task.Delay(checkPeriod.Value, cancellationToken);

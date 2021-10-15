@@ -34,7 +34,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
             _logger.LogDebug("Loading existing certificates.");
             await _certLoader.LoadAsync(cancellationToken);
 
-            var domains = await _domainLoader.GetDomainsAsync(cancellationToken);
+            var domains = await _domainLoader.GetDomainCertsAsync(cancellationToken);
             var hasCertForAllDomains = domains.All(_selector.HasCertForDomain);
             if (hasCertForAllDomains)
             {

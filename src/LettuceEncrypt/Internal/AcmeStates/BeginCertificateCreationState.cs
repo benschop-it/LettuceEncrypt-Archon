@@ -46,40 +46,44 @@ namespace LettuceEncrypt.Internal.AcmeStates
             var checkPeriod = _options.Value.RenewalCheckPeriod;
             var daysInAdvance = _options.Value.RenewDaysInAdvance;
 
-            var domains = await _domainLoader.GetDomainsAsync(cancellationToken);
+            var domainCerts = await _domainLoader.GetDomainCertsAsync(cancellationToken);
 
             var account = await _acmeCertificateFactory.GetOrCreateAccountAsync(cancellationToken);
             _logger.LogInformation("Using account {accountId}", account.Id);
 
             var saveTasks = new List<Task>();
 
-            foreach (var domain in domains)
+            foreach (var domainCert in domainCerts)
             {
-                if (checkPeriod.HasValue && daysInAdvance.HasValue
-                    && _selector.TryGet(domain, out var cert)
-                    && cert != null
-                    && cert.NotAfter > _clock.Now.DateTime + daysInAdvance.Value)
+                foreach (var domain in domainCert.Domains)
                 {
-                    _logger.LogInformation("Skipping {hostname} since cert already exists and is valid", domain);
-                    continue;
-                }
+                    if (checkPeriod.HasValue && daysInAdvance.HasValue
+                        && _selector.TryGet(domain, out var cert)
+                        && cert != null
+                        && cert.NotAfter > _clock.Now.DateTime + daysInAdvance.Value)
+                    {
+                        _logger.LogInformation("Skipping {hostname} since cert already exists and is valid", domain);
+                        continue;
+                    }
 
-                try
-                {
-                    _logger.LogInformation("Creating certificate for {hostname}", domain);
+                    try
+                    {
+                        _logger.LogInformation("Creating certificate for {hostname}", domainCert.Domains);
 
-                    var newCert = await _acmeCertificateFactory.CreateCertificateAsync(new HashSet<string> { domain }, cancellationToken);
+                        var newCert = await _acmeCertificateFactory.CreateCertificateAsync(new SortedSet<string>(domainCert.Domains), cancellationToken);
 
-                    _logger.LogInformation("Created certificate {subjectName} ({thumbprint})",
-                        newCert.Subject,
-                        newCert.Thumbprint);
+                        _logger.LogInformation("Created certificate {subjectName} ({thumbprint})",
+                            newCert.Subject,
+                            newCert.Thumbprint);
 
-                    saveTasks.Add(SaveCertificateAsync(newCert, cancellationToken));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostname}", domain);
-                    throw;
+                        saveTasks.Add(SaveCertificateAsync(newCert, cancellationToken));
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostnames}", domainCert.Domains);
+                        throw;
+                    }
                 }
             }
 

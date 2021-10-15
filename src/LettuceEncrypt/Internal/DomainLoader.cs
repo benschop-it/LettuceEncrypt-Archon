@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ namespace LettuceEncrypt
         private readonly ILogger<DomainLoader> _logger;
 
         private bool _useCache = false;
-        private HashSet<string> _domainCache = new HashSet<string>();
+        private List<IDomainCert> _domainCache = new List<IDomainCert>();
 
         public DomainLoader(IOptions<LettuceEncryptOptions> options,
             IEnumerable<IDomainSource> domainSources,
@@ -48,7 +49,7 @@ namespace LettuceEncrypt
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>Distinct set of domains to generate certs for.</returns>
-        public async Task<IReadOnlyCollection<string>> GetDomainsAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken)
         {
             if (_useCache)
             {
@@ -63,18 +64,22 @@ namespace LettuceEncrypt
 
                 var options = _options.Value;
 
-                var domains = new HashSet<string>();
+                var domains = new List<IDomainCert>();
 
                 if (options != null && options.DomainNames.Length > 0)
                 {
-                    domains.UnionWith(options.DomainNames);
+                    domains.Add(new MultipleDomainCert
+                    {
+                        PrimaryDomain = options.DomainNames.First(),
+                        AlternateDomains = new SortedSet<string>(options.DomainNames.Skip(1))
+                    });
                 }
 
                 foreach (var domainSource in _domainSources)
                 {
                     _logger.LogDebug("Loading domains from {domainSource}", domainSource.GetType().Name);
 
-                    domains.UnionWith(await domainSource.GetDomains(cancellationToken));
+                    domains.Union(await domainSource.GetDomains(cancellationToken));
                 }
 
                 _domainCache = domains;
