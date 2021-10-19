@@ -66,7 +66,7 @@ namespace LettuceEncrypt
                 {
                     _logger.LogDebug("Loading domains from {domainSource}", domainSource.GetType().Name);
 
-                    domains.Union(await domainSource.GetDomains(cancellationToken));
+                    domains.AddRange(await domainSource.GetDomains(cancellationToken));
                 }
 
                 _domainCache = domains;
