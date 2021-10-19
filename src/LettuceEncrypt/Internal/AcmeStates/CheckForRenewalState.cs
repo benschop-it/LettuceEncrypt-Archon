@@ -48,12 +48,10 @@ namespace LettuceEncrypt.Internal.AcmeStates
                     return MoveTo<TerminalState>();
                 }
 
-                await _domains.InvalidateCacheAsync(cancellationToken);
-
                 _logger.LogDebug("Loading existing certificates.");
                 await _certLoader.LoadAsync(cancellationToken);
 
-                var domainCerts = await _domains.GetDomainCertsAsync(cancellationToken);
+                var domainCerts = await _domains.GetDomainCertsAsync(cancellationToken, true);
                 foreach (var domainCert in domainCerts)
                 {
                     foreach (var domain in domainCert.Domains)
