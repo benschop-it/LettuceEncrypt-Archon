@@ -30,28 +30,15 @@ namespace LettuceEncrypt
             _logger = logger;
         }
 
-        internal async Task InvalidateCacheAsync(CancellationToken cancellationToken)
-        {
-            await s_sync.WaitAsync(cancellationToken);
-
-            try
-            {
-                _useCache = false;
-            }
-            finally
-            {
-                s_sync.Release();
-            }
-        }
-
         /// <summary>
         /// Load all domains from <see cref="LettuceEncryptOptions"/> and injected <see cref="IDomainSource"/>.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="refreshCache">Force a cache refresh.</param>
         /// <returns>Distinct set of domains to generate certs for.</returns>
-        public async Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken, bool refreshCache = false)
         {
-            if (_useCache)
+            if (_useCache && !refreshCache)
             {
                 return _domainCache;
             }

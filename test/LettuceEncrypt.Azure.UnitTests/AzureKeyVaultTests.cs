@@ -105,7 +105,7 @@ namespace LettuceEncrypt.Azure.UnitTests
             const string Domain2 = "azure.com";
 
             var domainLoader = new Mock<IDomainLoader>();
-            domainLoader.Setup(x => x.GetDomainCertsAsync(default))
+            domainLoader.Setup(x => x.GetDomainCertsAsync(default, false))
                 .Returns(() => Task.FromResult(
                     new[] { new SingleDomainCert { PrimaryDomain = Domain1 }, new SingleDomainCert { PrimaryDomain = Domain2 } }.AsEnumerable<IDomainCert>()
                 ));
