@@ -37,6 +37,8 @@ namespace LettuceEncrypt.Internal
             _config = config;
         }
 
+        public bool IsRunning { get; private set; } = false;
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             if (!_server.GetType().Name.StartsWith(nameof(KestrelServer)))
@@ -60,6 +62,8 @@ namespace LettuceEncrypt.Internal
 
             try
             {
+                IsRunning = true;
+
                 IAcmeState state = acmeStateMachineScope.ServiceProvider.GetRequiredService<ServerStartupState>();
 
                 while (!stoppingToken.IsCancellationRequested)
@@ -79,6 +83,10 @@ namespace LettuceEncrypt.Internal
             catch (Exception ex)
             {
                 _logger.LogError(0, ex, "ACME state machine encountered unhandled error");
+            }
+            finally
+            {
+                IsRunning = false;
             }
         }
     }
