@@ -8,5 +8,11 @@ namespace LettuceEncrypt
     /// <summary>
     /// Service running state machine for cert loading and renewal
     /// </summary>
-    public interface IAcmeCertificateLoader : IHostedService { }
+    public interface IAcmeCertificateLoader : IHostedService
+    {
+        /// <summary>
+        /// Determine if the ACME service is running
+        /// </summary>
+        public bool IsRunning { get; }
+    }
 }
