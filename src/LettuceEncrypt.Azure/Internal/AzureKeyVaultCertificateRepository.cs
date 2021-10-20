@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace LettuceEncrypt.Azure.Internal
 
             foreach (var domain in domains)
             {
-                var cert = await GetCertificateWithPrivateKeyAsync(domain.PrimaryDomain, cancellationToken);
+                var cert = await GetCertificateWithPrivateKeyAsync(domain.Domains.First(), cancellationToken);
 
                 if (cert != null)
                 {

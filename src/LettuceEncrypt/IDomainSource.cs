@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,23 +17,17 @@ namespace LettuceEncrypt
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IEnumerable<IDomainCert>> GetDomains(CancellationToken cancellationToken);
+        Task<ISet<IDomainCert>> GetDomains(CancellationToken cancellationToken);
     }
 
     /// <summary>
     /// Defines a certificate request with one or multiple domains
     /// </summary>
     public interface IDomainCert
-    {
-        /// <summary>
-        /// The primary domain which will be assigned the subject name
+    {   /// <summary>
+        /// Domains the cert should be requested for
         /// </summary>
-        public string PrimaryDomain { get; }
-
-        /// <summary>
-        /// Ordered domains the cert should be requested for, including <see cref="PrimaryDomain"/>
-        /// </summary>
-        public IEnumerable<string> Domains { get; }
+        public ISet<string> Domains { get; }
     }
 
     /// <summary>
@@ -42,11 +35,13 @@ namespace LettuceEncrypt
     /// </summary>
     public class SingleDomainCert : IDomainCert
     {
-        /// <inheritdoc/>
-        public string PrimaryDomain { get; set; } = default!;
+        /// <summary>
+        /// Domain to request standalone cert for
+        /// </summary>
+        public string Domain { get; set; } = default!;
 
         /// <inheritdoc/>
-        public IEnumerable<string> Domains => new[] { PrimaryDomain };
+        public ISet<string> Domains => new HashSet<string>() { Domain };
     }
 
     /// <summary>
@@ -54,21 +49,13 @@ namespace LettuceEncrypt
     /// </summary>
     public class MultipleDomainCert : IDomainCert
     {
-        /// <inheritdoc/>
-        public string PrimaryDomain { get; set; } = default!;
+        /// <summary>
+        /// Ordered domains to request multiple domain cert for.
+        /// The first domain in this set will be used as the common name.
+        /// </summary>
+        public HashSet<string> OrderedDomains { get; set; } = default!;
 
         /// <inheritdoc/>
-        public List<string> AlternateDomains { get; set; } = default!;
-
-        /// <inheritdoc/>
-        public IEnumerable<string> Domains
-        {
-            get
-            {
-                var ret = new List<string>(AlternateDomains);
-                ret.Insert(0, PrimaryDomain);
-                return ret;
-            }
-        }
+        public ISet<string> Domains => OrderedDomains;
     }
 }

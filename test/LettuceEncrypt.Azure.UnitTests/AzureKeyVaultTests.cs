@@ -107,7 +107,7 @@ namespace LettuceEncrypt.Azure.UnitTests
             var domainLoader = new Mock<IDomainLoader>();
             domainLoader.Setup(x => x.GetDomainCertsAsync(default, false))
                 .Returns(() => Task.FromResult(
-                    new[] { new SingleDomainCert { PrimaryDomain = Domain1 }, new SingleDomainCert { PrimaryDomain = Domain2 } }.AsEnumerable<IDomainCert>()
+                    new[] { new SingleDomainCert { Domain = Domain1 }, new SingleDomainCert { Domain = Domain2 } }.AsEnumerable<IDomainCert>()
                 ));
 
             var secretClient = new Mock<SecretClient>();

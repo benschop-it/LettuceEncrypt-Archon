@@ -57,8 +57,7 @@ namespace LettuceEncrypt
                 {
                     domains.Add(new MultipleDomainCert
                     {
-                        PrimaryDomain = options.DomainNames.First(),
-                        AlternateDomains = new List<string>(options.DomainNames.Skip(1))
+                        OrderedDomains = new HashSet<string>(options.DomainNames)
                     });
                 }
 
