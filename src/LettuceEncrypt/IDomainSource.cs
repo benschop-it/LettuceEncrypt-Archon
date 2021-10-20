@@ -65,7 +65,9 @@ namespace LettuceEncrypt
         {
             get
             {
-                return (new[] { PrimaryDomain }).Union(AlternateDomains);
+                var ret = new List<string> { PrimaryDomain };
+                ret.AddRange(AlternateDomains);
+                return ret;
             }
         }
     }
