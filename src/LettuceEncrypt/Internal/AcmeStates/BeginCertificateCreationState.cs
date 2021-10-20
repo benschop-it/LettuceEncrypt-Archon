@@ -70,7 +70,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
                     {
                         _logger.LogInformation("Creating certificate for {hostname}", domainCert.Domains);
 
-                        var newCert = await _acmeCertificateFactory.CreateCertificateAsync(new SortedSet<string>(domainCert.Domains), cancellationToken);
+                        var newCert = await _acmeCertificateFactory.CreateCertificateAsync(domainCert.Domains, cancellationToken);
 
                         _logger.LogInformation("Created certificate {subjectName} ({thumbprint})",
                             newCert.Subject,
