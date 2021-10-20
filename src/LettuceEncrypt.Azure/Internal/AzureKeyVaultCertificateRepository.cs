@@ -135,7 +135,7 @@ namespace LettuceEncrypt.Azure.Internal
 
         public async Task SaveAsync(X509Certificate2 certificate, CancellationToken cancellationToken)
         {
-            var domainName = certificate.GetNameInfo(X509NameType.DnsName, false);
+            var domainName = certificate.GetNameInfo(X509NameType.SimpleName, false);
 
             _logger.LogInformation("Saving certificate for {domainName} in Azure KeyVault.", domainName);
 
