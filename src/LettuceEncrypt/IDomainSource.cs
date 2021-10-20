@@ -17,7 +17,7 @@ namespace LettuceEncrypt
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<ISet<IDomainCert>> GetDomains(CancellationToken cancellationToken);
+        Task<IEnumerable<IDomainCert>> GetDomains(CancellationToken cancellationToken);
     }
 
     /// <summary>
