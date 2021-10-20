@@ -65,8 +65,8 @@ namespace LettuceEncrypt
         {
             get
             {
-                var ret = new List<string> { PrimaryDomain };
-                ret.AddRange(AlternateDomains);
+                var ret = new SortedSet<string> { PrimaryDomain };
+                ret.UnionWith(AlternateDomains);
                 return ret;
             }
         }
