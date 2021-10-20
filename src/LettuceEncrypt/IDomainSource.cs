@@ -58,15 +58,15 @@ namespace LettuceEncrypt
         public string PrimaryDomain { get; set; } = default!;
 
         /// <inheritdoc/>
-        public SortedSet<string> AlternateDomains { get; set; } = default!;
+        public List<string> AlternateDomains { get; set; } = default!;
 
         /// <inheritdoc/>
         public IEnumerable<string> Domains
         {
             get
             {
-                var ret = new SortedSet<string> { PrimaryDomain };
-                ret.UnionWith(AlternateDomains);
+                var ret = new List<string>(AlternateDomains);
+                ret.Insert(0, PrimaryDomain);
                 return ret;
             }
         }

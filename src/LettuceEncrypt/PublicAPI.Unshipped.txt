@@ -9,7 +9,7 @@ LettuceEncrypt.IDomainLoader.GetDomainCertsAsync(System.Threading.CancellationTo
 LettuceEncrypt.IDomainSource
 LettuceEncrypt.IDomainSource.GetDomains(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<LettuceEncrypt.IDomainCert!>!>!
 LettuceEncrypt.MultipleDomainCert
-LettuceEncrypt.MultipleDomainCert.AlternateDomains.get -> System.Collections.Generic.SortedSet<string!>!
+LettuceEncrypt.MultipleDomainCert.AlternateDomains.get -> System.Collections.Generic.List<string!>!
 LettuceEncrypt.MultipleDomainCert.AlternateDomains.set -> void
 LettuceEncrypt.MultipleDomainCert.Domains.get -> System.Collections.Generic.IEnumerable<string!>!
 LettuceEncrypt.MultipleDomainCert.MultipleDomainCert() -> void
