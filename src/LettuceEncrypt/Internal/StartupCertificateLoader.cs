@@ -41,7 +41,7 @@ namespace LettuceEncrypt.Internal
             foreach (var cert in allCerts.OrderByDescending(c => c.NotAfter))
             {
                 _logger.LogDebug("Loading certificate: {certificate}", cert.FriendlyName);
-                _selector.Add(cert);
+                await _selector.AddAsync(cert);
             }
         }
     }

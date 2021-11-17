@@ -27,6 +27,8 @@ namespace LettuceEncrypt.Internal.IO
             set => Console.ForegroundColor = value;
         }
 
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Try/catch around calling code")]
         public bool CursorVisible
         {
             get => Console.CursorVisible;
@@ -36,6 +38,6 @@ namespace LettuceEncrypt.Internal.IO
         public void WriteLine(string line) => Console.WriteLine(line);
         public void Write(string line) => Console.Write(line);
         public void ResetColor() => Console.ResetColor();
-        public string ReadLine() => Console.ReadLine();
+        public string ReadLine() => Console.ReadLine()!;
     }
 }

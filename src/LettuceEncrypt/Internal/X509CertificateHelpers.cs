@@ -40,7 +40,7 @@ namespace LettuceEncrypt.Internal
             foreach (var ext in cert.Extensions)
             {
                 // Extension is SAN2
-                if (ext.Oid.Value == X509SubjectAlternativeNameConstants.Oid)
+                if (ext.Oid?.Value == X509SubjectAlternativeNameConstants.Oid)
                 {
                     var asnString = ext.Format(false);
                     if (string.IsNullOrWhiteSpace(asnString))

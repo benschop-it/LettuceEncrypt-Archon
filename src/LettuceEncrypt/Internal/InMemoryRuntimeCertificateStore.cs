@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace LettuceEncrypt.Internal
 {
@@ -16,9 +17,9 @@ namespace LettuceEncrypt.Internal
         private readonly ConcurrentDictionary<string, X509Certificate2> _challengeCerts =
             new(StringComparer.OrdinalIgnoreCase);
 
-        public X509Certificate2 AddCertWithDomainName(string domainName, X509Certificate2 certificate)
+        public Task<X509Certificate2> AddCertWithDomainNameAsync(string domainName, X509Certificate2 certificate)
         {
-            return _certs.AddOrUpdate(
+            return Task.FromResult(_certs.AddOrUpdate(
                 domainName,
                 certificate,
                 (_, currentCert) =>
@@ -29,12 +30,12 @@ namespace LettuceEncrypt.Internal
                     }
 
                     return currentCert;
-                });
+                }));
         }
 
-        public X509Certificate2 AddChallengeCertWithDomainName(string domainName, X509Certificate2 certificate)
+        public Task<X509Certificate2> AddChallengeCertWithDomainNameAsync(string domainName, X509Certificate2 certificate)
         {
-            return _challengeCerts.AddOrUpdate(
+            return Task.FromResult(_challengeCerts.AddOrUpdate(
                 domainName,
                 certificate,
                 (_, currentCert) =>
@@ -45,42 +46,57 @@ namespace LettuceEncrypt.Internal
                     }
 
                     return currentCert;
-                });
+                }));
         }
 
-        public bool GetCert(string domainName, out X509Certificate2? certificate)
+        public Task<X509Certificate2?> GetCertAsync(string domainName)
         {
-            return _certs.TryGetValue(domainName, out certificate);
+            if (_certs.TryGetValue(domainName, out var certificate))
+            {
+                return Task.FromResult((X509Certificate2?)certificate);
+            }
+            else
+            {
+                return Task.FromResult((X509Certificate2?)null);
+            }
         }
 
-        public bool GetChallengeCert(string domainName, out X509Certificate2? certificate)
+        public Task<X509Certificate2?> GetChallengeCertAsync(string domainName)
         {
-            return _challengeCerts.TryGetValue(domainName, out certificate);
+            if (_challengeCerts.TryGetValue(domainName, out var certificate))
+            {
+                return Task.FromResult((X509Certificate2?)certificate);
+            }
+            else
+            {
+                return Task.FromResult((X509Certificate2?)null);
+            }
+            throw new NotImplementedException();
         }
 
-        public bool RemoveCert(string domainName)
+        public Task<bool> RemoveCertAsync(string domainName)
         {
-            return _certs.TryRemove(domainName, out _);
+            return Task.FromResult(_certs.TryRemove(domainName, out _));
         }
 
-        public bool RemoveChallengeCert(string domainName)
+        public Task<bool> RemoveChallengeCertAsync(string domainName)
         {
-            return _challengeCerts.TryRemove(domainName, out _);
+            return Task.FromResult(_challengeCerts.TryRemove(domainName, out _));
         }
 
-        public bool AnyChallengeCert()
+        public Task<bool> AnyChallengeCertAsync()
         {
-            return _challengeCerts.Count > 0;
+            return Task.FromResult(_challengeCerts.Count > 0);
         }
 
-        public bool ContainsCertForDomain(string domainName)
+        public Task<bool> ContainsCertForDomainAsync(string domainName)
         {
-            return _certs.ContainsKey(domainName);
+            return Task.FromResult(_certs.ContainsKey(domainName));
         }
 
-        public IEnumerable<string> GetAllCertDomains()
+        public Task<IEnumerable<string>> GetAllCertDomainsAsync()
         {
-            return _certs.Keys;
+            return Task.FromResult(_certs.Keys as IEnumerable<string>);
         }
     }
 }

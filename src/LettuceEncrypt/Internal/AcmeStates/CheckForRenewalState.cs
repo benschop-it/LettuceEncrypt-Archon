@@ -61,9 +61,8 @@ namespace LettuceEncrypt.Internal.AcmeStates
                             _logger.LogDebug("Checking certificates' renewals for {hostname}", domain);
                         }
 
-                        if (!_selector.TryGet(domain, out var cert)
-                               || cert == null
-                               || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
+                        var cert = await _selector.TryGetAsync(domain);
+                        if (cert == null || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
                         {
                             return MoveTo<BeginCertificateCreationState>();
                         }

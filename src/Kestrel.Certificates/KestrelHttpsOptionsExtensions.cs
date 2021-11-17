@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Hosting
             this HttpsConnectionAdapterOptions httpsOptions,
             IServerCertificateSelector certificateSelector)
         {
+            
             httpsOptions.ServerCertificateSelector = certificateSelector.Select;
             return httpsOptions;
         }

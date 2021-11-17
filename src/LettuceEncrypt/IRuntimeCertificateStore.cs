@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace LettuceEncrypt
 {
@@ -17,58 +18,56 @@ namespace LettuceEncrypt
         /// <param name="domainName"></param>
         /// <param name="certificate"></param>
         /// <returns></returns>
-        X509Certificate2 AddCertWithDomainName(string domainName, X509Certificate2 certificate);
+        Task<X509Certificate2> AddCertWithDomainNameAsync(string domainName, X509Certificate2 certificate);
         /// <summary>
         /// 
         /// </summary>
         /// <param name="domainName"></param>
         /// <param name="certificate"></param>
         /// <returns></returns>
-        X509Certificate2 AddChallengeCertWithDomainName(string domainName, X509Certificate2 certificate);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="domainName"></param>
-        /// <param name="certificate"></param>
-        /// <returns></returns>
-        bool GetCert(string domainName, out X509Certificate2? certificate);
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="domainName"></param>
-        /// <param name="certificate"></param>
-        /// <returns></returns>
-        bool GetChallengeCert(string domainName, out X509Certificate2? certificate);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        bool AnyChallengeCert();
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="domainName"></param>
-        /// <returns></returns>
-        bool ContainsCertForDomain(string domainName);
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        IEnumerable<string> GetAllCertDomains();
+        Task<X509Certificate2> AddChallengeCertWithDomainNameAsync(string domainName, X509Certificate2 certificate);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="domainName"></param>
         /// <returns></returns>
-        bool RemoveCert(string domainName);
+        Task<X509Certificate2?> GetCertAsync(string domainName);
         /// <summary>
         /// 
         /// </summary>
         /// <param name="domainName"></param>
         /// <returns></returns>
-        bool RemoveChallengeCert(string domainName);
+        Task<X509Certificate2?> GetChallengeCertAsync(string domainName);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> AnyChallengeCertAsync();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="domainName"></param>
+        /// <returns></returns>
+        Task<bool> ContainsCertForDomainAsync(string domainName);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<IEnumerable<string>> GetAllCertDomainsAsync();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="domainName"></param>
+        /// <returns></returns>
+        Task<bool> RemoveCertAsync(string domainName);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="domainName"></param>
+        /// <returns></returns>
+        Task<bool> RemoveChallengeCertAsync(string domainName);
     }
 }

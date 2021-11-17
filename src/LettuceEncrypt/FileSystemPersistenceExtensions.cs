@@ -50,8 +50,8 @@ namespace LettuceEncrypt
 
             foreach (var serviceDescriptor in otherFileSystemRepoServices)
             {
-                var otherRepo = (FileSystemCertificateRepository)serviceDescriptor.ImplementationInstance;
-                if (otherRepo.RootDir.Equals(directory))
+                var otherRepo = serviceDescriptor.ImplementationInstance as FileSystemCertificateRepository;
+                if (otherRepo != null && otherRepo.RootDir.Equals(directory))
                 {
                     if (otherRepo.PfxPassword != pfxPassword)
                     {

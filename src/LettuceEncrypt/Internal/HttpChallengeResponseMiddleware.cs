@@ -39,7 +39,7 @@ namespace LettuceEncrypt.Internal
 
             context.Response.ContentLength = value?.Length ?? 0;
             context.Response.ContentType = "application/octet-stream";
-            await context.Response.WriteAsync(value, context.RequestAborted);
+            await context.Response.WriteAsync(value ?? "", context.RequestAborted);
         }
     }
 }

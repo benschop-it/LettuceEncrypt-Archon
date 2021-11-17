@@ -9,6 +9,15 @@ LettuceEncrypt.IDomainLoader
 LettuceEncrypt.IDomainLoader.GetDomainCertsAsync(System.Threading.CancellationToken cancellationToken, bool refreshCache = false) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<LettuceEncrypt.IDomainCert!>!>!
 LettuceEncrypt.IDomainSource
 LettuceEncrypt.IDomainSource.GetDomains(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<LettuceEncrypt.IDomainCert!>!>!
+LettuceEncrypt.IRuntimeCertificateStore.AddCertWithDomainNameAsync(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Threading.Tasks.Task<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+LettuceEncrypt.IRuntimeCertificateStore.AddChallengeCertWithDomainNameAsync(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Threading.Tasks.Task<System.Security.Cryptography.X509Certificates.X509Certificate2!>!
+LettuceEncrypt.IRuntimeCertificateStore.AnyChallengeCertAsync() -> System.Threading.Tasks.Task<bool>!
+LettuceEncrypt.IRuntimeCertificateStore.ContainsCertForDomainAsync(string! domainName) -> System.Threading.Tasks.Task<bool>!
+LettuceEncrypt.IRuntimeCertificateStore.GetAllCertDomainsAsync() -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string!>!>!
+LettuceEncrypt.IRuntimeCertificateStore.GetCertAsync(string! domainName) -> System.Threading.Tasks.Task<System.Security.Cryptography.X509Certificates.X509Certificate2?>!
+LettuceEncrypt.IRuntimeCertificateStore.GetChallengeCertAsync(string! domainName) -> System.Threading.Tasks.Task<System.Security.Cryptography.X509Certificates.X509Certificate2?>!
+LettuceEncrypt.IRuntimeCertificateStore.RemoveCertAsync(string! domainName) -> System.Threading.Tasks.Task<bool>!
+LettuceEncrypt.IRuntimeCertificateStore.RemoveChallengeCertAsync(string! domainName) -> System.Threading.Tasks.Task<bool>!
 LettuceEncrypt.MultipleDomainCert
 LettuceEncrypt.MultipleDomainCert.Domains.get -> System.Collections.Generic.ISet<string!>!
 LettuceEncrypt.MultipleDomainCert.MultipleDomainCert() -> void
@@ -23,12 +32,4 @@ LettuceEncrypt.IHttpChallengeResponseStore
 LettuceEncrypt.IHttpChallengeResponseStore.AddChallengeResponse(string! token, string! response) -> void
 LettuceEncrypt.IHttpChallengeResponseStore.TryGetResponse(string! token, out string? value) -> bool
 LettuceEncrypt.IRuntimeCertificateStore
-LettuceEncrypt.IRuntimeCertificateStore.AddCertWithDomainName(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Security.Cryptography.X509Certificates.X509Certificate2!
-LettuceEncrypt.IRuntimeCertificateStore.AddChallengeCertWithDomainName(string! domainName, System.Security.Cryptography.X509Certificates.X509Certificate2! certificate) -> System.Security.Cryptography.X509Certificates.X509Certificate2!
-LettuceEncrypt.IRuntimeCertificateStore.AnyChallengeCert() -> bool
-LettuceEncrypt.IRuntimeCertificateStore.ContainsCertForDomain(string! domainName) -> bool
-LettuceEncrypt.IRuntimeCertificateStore.GetAllCertDomains() -> System.Collections.Generic.IEnumerable<string!>!
-LettuceEncrypt.IRuntimeCertificateStore.GetCert(string! domainName, out System.Security.Cryptography.X509Certificates.X509Certificate2? certificate) -> bool
-LettuceEncrypt.IRuntimeCertificateStore.GetChallengeCert(string! domainName, out System.Security.Cryptography.X509Certificates.X509Certificate2? certificate) -> bool
-LettuceEncrypt.IRuntimeCertificateStore.RemoveCert(string! domainName) -> bool
-LettuceEncrypt.IRuntimeCertificateStore.RemoveChallengeCert(string! domainName) -> bool
+static Microsoft.AspNetCore.Hosting.LettuceEncryptKestrelHttpsOptionsExtensions.UseLettuceEncrypt(this Microsoft.AspNetCore.Server.Kestrel.Core.ListenOptions! listenOptions, System.IServiceProvider! applicationServices) -> Microsoft.AspNetCore.Server.Kestrel.Core.ListenOptions!

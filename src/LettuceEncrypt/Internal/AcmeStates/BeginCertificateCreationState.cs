@@ -57,13 +57,14 @@ namespace LettuceEncrypt.Internal.AcmeStates
             {
                 foreach (var domain in domainCert.Domains)
                 {
-                    if (checkPeriod.HasValue && daysInAdvance.HasValue
-                        && _selector.TryGet(domain, out var cert)
-                        && cert != null
-                        && cert.NotAfter > _clock.Now.DateTime + daysInAdvance.Value)
+                    if (checkPeriod.HasValue && daysInAdvance.HasValue)
                     {
-                        _logger.LogInformation("Skipping {hostname} since cert already exists and is valid", domain);
-                        continue;
+                        var cert = await _selector.TryGetAsync(domain);
+                        if (cert != null && cert.NotAfter > _clock.Now.DateTime + daysInAdvance.Value)
+                        {
+                            _logger.LogInformation("Skipping {hostname} since cert already exists and is valid", domain);
+                            continue;
+                        }
                     }
 
                     try
@@ -94,7 +95,7 @@ namespace LettuceEncrypt.Internal.AcmeStates
 
         private async Task SaveCertificateAsync(X509Certificate2 cert, CancellationToken cancellationToken)
         {
-            _selector.Add(cert);
+            await _selector.AddAsync(cert);
 
             var saveTasks = new List<Task>
             {

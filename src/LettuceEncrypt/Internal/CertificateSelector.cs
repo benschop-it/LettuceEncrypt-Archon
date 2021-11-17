@@ -4,9 +4,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using McMaster.AspNetCore.Kestrel.Certificates;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
@@ -27,14 +27,14 @@ namespace LettuceEncrypt.Internal
             _runtimeCertificateStore = runtimeCertificateStore;
         }
 
-        public IEnumerable<string> SupportedDomains => _runtimeCertificateStore.GetAllCertDomains();
+        public IEnumerable<string> SupportedDomains => _runtimeCertificateStore.GetAllCertDomainsAsync().Result;
 
-        public virtual void Add(X509Certificate2 certificate)
+        public virtual async Task AddAsync(X509Certificate2 certificate)
         {
             var preloaded = false;
             foreach (var dnsName in X509CertificateHelpers.GetAllDnsNames(certificate))
             {
-                var selectedCert = _runtimeCertificateStore.AddCertWithDomainName(dnsName, certificate);
+                var selectedCert = await _runtimeCertificateStore.AddCertWithDomainNameAsync(dnsName, certificate);
 
                 // Call preload once per certificate, but only if the cetificate is actually selected to be used
                 // for this domain. This is a small optimization which avoids preloading on a cert that may not be used.
@@ -46,17 +46,17 @@ namespace LettuceEncrypt.Internal
             }
         }
 
-        public virtual void AddChallengeCert(X509Certificate2 certificate)
+        public virtual async Task AddChallengeCertAsync(X509Certificate2 certificate)
         {
             foreach (var dnsName in X509CertificateHelpers.GetAllDnsNames(certificate))
             {
-                _runtimeCertificateStore.AddChallengeCertWithDomainName(dnsName, certificate);
+                await _runtimeCertificateStore.AddChallengeCertWithDomainNameAsync(dnsName, certificate);
             }
         }
 
-        public void ClearChallengeCert(string dnsName)
+        public async Task ClearChallengeCertAsync(string dnsName)
         {
-            _runtimeCertificateStore.RemoveChallengeCert(dnsName);
+            await _runtimeCertificateStore.RemoveChallengeCertAsync(dnsName);
         }
 
         /// <summary>
@@ -83,23 +83,43 @@ namespace LettuceEncrypt.Internal
                 });
         }
 
-        public bool HasCertForDomain(string domainName) => _runtimeCertificateStore.ContainsCertForDomain(domainName);
-        public bool HasCertForDomain(IDomainCert domainCert) => domainCert.Domains.All(_runtimeCertificateStore.ContainsCertForDomain);
+        public Task<bool> HasCertForDomainAsync(string domainName) => _runtimeCertificateStore.ContainsCertForDomainAsync(domainName);
+        public async Task<bool> HasCertForDomainAsync(IDomainCert domainCert)
+        {
+            foreach (var domainName in domainCert.Domains)
+            {
+                if (!await _runtimeCertificateStore.ContainsCertForDomainAsync(domainName))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         public X509Certificate2? Select(ConnectionContext context, string? domainName)
         {
+            return SelectAsync(context, domainName).Result;
+        }
+
+        public async Task<X509Certificate2?> SelectAsync(ConnectionContext context, string? domainName)
+        {
 #if NETCOREAPP3_1_OR_GREATER
-            if (_runtimeCertificateStore.AnyChallengeCert())
+            if (await _runtimeCertificateStore.AnyChallengeCertAsync())
             {
                 // var sslStream = context.Features.Get<SslStream>();
                 // sslStream.NegotiatedApplicationProtocol hasn't been set yet, so we have to assume that
                 // if ALPN challenge certs are configured, we must respond with those.
 
-                if (domainName != null && _runtimeCertificateStore.GetChallengeCert(domainName, out var challengeCert))
+                if (domainName != null)
                 {
-                    _logger.LogTrace("Using ALPN challenge cert for {domainName}", domainName);
+                    var challengeCert = await _runtimeCertificateStore.GetChallengeCertAsync(domainName);
+                    if (challengeCert != null)
+                    {
+                        _logger.LogTrace("Using ALPN challenge cert for {domainName}", domainName);
 
-                    return challengeCert;
+                        return challengeCert;
+                    }
                 }
             }
 #elif NETSTANDARD2_0
@@ -107,7 +127,13 @@ namespace LettuceEncrypt.Internal
 #error Update TFMs
 #endif
 
-            if (domainName == null || !_runtimeCertificateStore.GetCert(domainName, out var cert))
+            if (domainName == null)
+            {
+                return _options.Value.FallbackCertificate;
+            }
+
+            var cert = await _runtimeCertificateStore.GetCertAsync(domainName);
+            if (cert == null)
             {
                 return _options.Value.FallbackCertificate;
             }
@@ -115,14 +141,14 @@ namespace LettuceEncrypt.Internal
             return cert;
         }
 
-        public void Reset(string domainName)
+        public async Task ResetAsync(string domainName)
         {
-            _runtimeCertificateStore.RemoveCert(domainName);
+            await _runtimeCertificateStore.RemoveCertAsync(domainName);
         }
 
-        public bool TryGet(string domainName, out X509Certificate2? certificate)
+        public Task<X509Certificate2?> TryGetAsync(string domainName)
         {
-            return _runtimeCertificateStore.GetCert(domainName, out certificate);
+            return _runtimeCertificateStore.GetCertAsync(domainName);
         }
 
         private void PreloadIntermediateCertificates(X509Certificate2 certificate)

@@ -35,7 +35,7 @@ namespace LettuceEncrypt.Internal
             finally
             {
                 // cleanup after authorization is done to skip unnecessary cert lookup on all incoming SSL connections
-                _tlsAlpnChallengeResponder.DiscardChallenge(_domainName);
+                await _tlsAlpnChallengeResponder.DiscardChallengeAsync(_domainName);
             }
         }
 
@@ -48,7 +48,7 @@ namespace LettuceEncrypt.Internal
 
             var tlsAlpnChallenge = await _client.CreateChallengeAsync(authorizationContext, ChallengeTypes.TlsAlpn01);
 
-            _tlsAlpnChallengeResponder.PrepareChallengeCert(domainName, tlsAlpnChallenge.KeyAuthz);
+            await _tlsAlpnChallengeResponder.PrepareChallengeCertAsync(domainName, tlsAlpnChallenge.KeyAuthz);
 
             _logger.LogTrace("Waiting for server to start accepting HTTP requests");
             await _appStarted.Task;

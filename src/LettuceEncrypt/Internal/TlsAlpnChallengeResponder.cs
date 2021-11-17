@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using LettuceEncrypt.Acme;
 using LettuceEncrypt.Internal.IO;
 using Microsoft.AspNetCore.Connections;
@@ -51,7 +52,7 @@ namespace LettuceEncrypt.Internal
         // TLS ALPN not supported on .NET Standard. Requires .NET Core 3
         public bool IsEnabled => false;
 
-        public void PrepareChallengeCert(string domainName, string keyAuthorization)
+        public Task PrepareChallengeCertAsync(string domainName, string keyAuthorization)
         {
             throw new PlatformNotSupportedException();
         }
@@ -63,7 +64,7 @@ namespace LettuceEncrypt.Internal
         {
             if (_openChallenges > 0)
             {
-                options.ApplicationProtocols.Add(s_acmeTlsProtocol);
+                options?.ApplicationProtocols?.Add(s_acmeTlsProtocol);
             }
         }
 
@@ -72,7 +73,7 @@ namespace LettuceEncrypt.Internal
         /// </summary>
         /// <param name="domainName">the domain name</param>
         /// <param name="keyAuthorization">token to be included in self-signed cert</param>
-        public void PrepareChallengeCert(string domainName, string keyAuthorization)
+        public async Task PrepareChallengeCertAsync(string domainName, string keyAuthorization)
         {
             _logger.LogTrace("Creating ALPN self-signed cert for {domainName} and key authz {keyAuth}",
                 domainName, keyAuthorization);
@@ -123,19 +124,19 @@ namespace LettuceEncrypt.Internal
             }
 
             Interlocked.Increment(ref _openChallenges);
-            _certificateSelector.AddChallengeCert(cert);
+            await _certificateSelector.AddChallengeCertAsync(cert);
         }
 #else
 #error Update TFMs
 #endif
 
-        public void DiscardChallenge(string domainName)
+        public async Task DiscardChallengeAsync(string domainName)
         {
             Interlocked.Decrement(ref _openChallenges);
 
             _logger.LogTrace("Clearing ALPN cert for {domainName}", domainName);
 
-            _certificateSelector.ClearChallengeCert(domainName);
+            await _certificateSelector.ClearChallengeCertAsync(domainName);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace LettuceEncrypt.UnitTests
                 new InMemoryRuntimeCertificateStore());
 
             selector
-                .Setup(s => s.Add(testCert))
+                .Setup(s => s.AddAsync(testCert))
                 .Verifiable();
 
             var source1 = CreateCertSource(certs);
