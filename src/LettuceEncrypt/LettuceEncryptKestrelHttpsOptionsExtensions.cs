@@ -10,66 +10,66 @@ using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.AspNetCore.Hosting
+namespace Microsoft.AspNetCore.Hosting;
+
+/// <summary>
+/// Methods for configuring Kestrel.
+/// </summary>
+public static class LettuceEncryptKestrelHttpsOptionsExtensions
 {
+    private const string MissingServicesMessage =
+        "Missing required LettuceEncrypt services. Did you call '.AddLettuceEncrypt()' to add these your DI container?";
+
     /// <summary>
-    /// Methods for configuring Kestrel.
+    /// Configured LettuceEncrypt on this HTTPS endpoint for Kestrel.
     /// </summary>
-    public static class LettuceEncryptKestrelHttpsOptionsExtensions
+    /// <param name="httpsOptions">Kestrel's HTTPS configuration</param>
+    /// <param name="applicationServices"></param>
+    /// <returns>The original HTTPS options with some required settings added to it.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Raised if <see cref="LettuceEncryptServiceCollectionExtensions.AddLettuceEncrypt(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>
+    /// has not been used to add required services to the application service provider
+    /// </exception>
+    public static HttpsConnectionAdapterOptions UseLettuceEncrypt(
+        this HttpsConnectionAdapterOptions httpsOptions,
+        IServiceProvider applicationServices)
     {
-        private const string MissingServicesMessage =
-            "Missing required LettuceEncrypt services. Did you call '.AddLettuceEncrypt()' to add these your DI container?";
+        var selector = applicationServices.GetService<IServerCertificateSelector>();
 
-        /// <summary>
-        /// Configured LettuceEncrypt on this HTTPS endpoint for Kestrel.
-        /// </summary>
-        /// <param name="httpsOptions">Kestrel's HTTPS configuration</param>
-        /// <param name="applicationServices"></param>
-        /// <returns>The original HTTPS options with some required settings added to it.</returns>
-        /// <exception cref="InvalidOperationException">
-        /// Raised if <see cref="LettuceEncryptServiceCollectionExtensions.AddLettuceEncrypt(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>
-        /// has not been used to add required services to the application service provider
-        /// </exception>
-        public static HttpsConnectionAdapterOptions UseLettuceEncrypt(
-            this HttpsConnectionAdapterOptions httpsOptions,
-            IServiceProvider applicationServices)
+        if (selector is null)
         {
-            var selector = applicationServices.GetService<IServerCertificateSelector>();
-
-            if (selector is null)
-            {
-                throw new InvalidOperationException(MissingServicesMessage);
-            }
+            throw new InvalidOperationException(MissingServicesMessage);
+        }
 
 #if NETCOREAPP3_1_OR_GREATER
-            var tlsResponder = applicationServices.GetService<TlsAlpnChallengeResponder>();
-            if (tlsResponder is null)
-            {
-                throw new InvalidOperationException(MissingServicesMessage);
-            }
+        var tlsResponder = applicationServices.GetService<TlsAlpnChallengeResponder>();
+        if (tlsResponder is null)
+        {
+            throw new InvalidOperationException(MissingServicesMessage);
+        }
 
-            return httpsOptions.UseLettuceEncrypt(selector, tlsResponder);
+        return httpsOptions.UseLettuceEncrypt(selector, tlsResponder);
 
 #elif NETSTANDARD2_0
-            return httpsOptions.UseServerCertificateSelector(selector);
+        return httpsOptions.UseServerCertificateSelector(selector);
 #else
 #error Update TFMs
 #endif
-        }
-        /// <summary>
-        /// Configured LettuceEncrypt on this listening endpoint for Kestrel.
-        /// </summary>
-        /// <param name="listenOptions">Kestrel's listen configuration</param>
-        /// <param name="applicationServices"></param>
-        /// <returns>The original HTTPS options with some required settings added to it.</returns>
-        /// <exception cref="InvalidOperationException">
-        /// Raised if <see cref="LettuceEncryptServiceCollectionExtensions.AddLettuceEncrypt(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>
-        /// has not been used to add required services to the application service provider
-        /// </exception>
-        public static ListenOptions UseLettuceEncrypt(
-            this ListenOptions listenOptions,
-            IServiceProvider applicationServices)
-        {
+    }
+    /// <summary>
+    /// Configured LettuceEncrypt on this listening endpoint for Kestrel.
+    /// </summary>
+    /// <param name="listenOptions">Kestrel's listen configuration</param>
+    /// <param name="applicationServices"></param>
+    /// <returns>The original HTTPS options with some required settings added to it.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Raised if <see cref="LettuceEncryptServiceCollectionExtensions.AddLettuceEncrypt(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>
+    /// has not been used to add required services to the application service provider
+    /// </exception>
+    public static ListenOptions UseLettuceEncrypt(
+        this ListenOptions listenOptions,
+        IServiceProvider applicationServices)
+    {
 #if NET6_0_OR_GREATER
             var selector = applicationServices.GetService<IServerCertificateSelector>();
 
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Hosting
 #else
 #error Update TFMs
 #endif
-        }
+    }
 #if NET6_0_OR_GREATER
         internal static ListenOptions UseLettuceEncrypt(
             this ListenOptions listenOptions,
@@ -113,26 +113,25 @@ namespace Microsoft.AspNetCore.Hosting
         }
 #endif
 #if NETCOREAPP3_1_OR_GREATER
-        internal static HttpsConnectionAdapterOptions UseLettuceEncrypt(
-            this HttpsConnectionAdapterOptions httpsOptions,
-            IServerCertificateSelector selector,
-            TlsAlpnChallengeResponder tlsAlpnChallengeResponder
-        )
+    internal static HttpsConnectionAdapterOptions UseLettuceEncrypt(
+        this HttpsConnectionAdapterOptions httpsOptions,
+        IServerCertificateSelector selector,
+        TlsAlpnChallengeResponder tlsAlpnChallengeResponder
+    )
+    {
+        // Check if this handler is already set. If so, chain our handler before it.
+        var otherHandler = httpsOptions.OnAuthenticate;
+        httpsOptions.OnAuthenticate = (ctx, options) =>
         {
-            // Check if this handler is already set. If so, chain our handler before it.
-            var otherHandler = httpsOptions.OnAuthenticate;
-            httpsOptions.OnAuthenticate = (ctx, options) =>
-            {
-                tlsAlpnChallengeResponder.OnSslAuthenticate(ctx, options);
-                otherHandler?.Invoke(ctx, options);
-            };
+            tlsAlpnChallengeResponder.OnSslAuthenticate(ctx, options);
+            otherHandler?.Invoke(ctx, options);
+        };
 
-            httpsOptions.UseServerCertificateSelector(selector);
-            return httpsOptions;
-        }
+        httpsOptions.UseServerCertificateSelector(selector);
+        return httpsOptions;
+    }
 #elif NETSTANDARD2_0
 #else
 #error Update TFMs
 #endif
-    }
 }

@@ -11,77 +11,76 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace LettuceEncrypt.UnitTests
+namespace LettuceEncrypt.UnitTests;
+
+using static TestUtils;
+
+public class CertificateSelectorTests
 {
-    using static TestUtils;
-
-    public class CertificateSelectorTests
+    [Fact]
+    public async Task ItUsesCertCommonNameAsync()
     {
-        [Fact]
-        public async Task ItUsesCertCommonNameAsync()
+        const string CommonName = "selector.test.natemcmaster.com";
+
+        var testCert = CreateTestCert(CommonName);
+        var selector = new CertificateSelector(
+            Options.Create(new LettuceEncryptOptions()),
+            NullLogger<CertificateSelector>.Instance,
+            new InMemoryRuntimeCertificateStore());
+
+        await selector.AddAsync(testCert);
+
+        var domain = Assert.Single(selector.SupportedDomains);
+        Assert.Equal(CommonName, domain);
+    }
+
+    [Fact]
+    public async Task ItUsesSubjectAlternativeNameAsync()
+    {
+        var domainNames = new[]
         {
-            const string CommonName = "selector.test.natemcmaster.com";
-
-            var testCert = CreateTestCert(CommonName);
-            var selector = new CertificateSelector(
-                Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance,
-                new InMemoryRuntimeCertificateStore());
-
-            await selector.AddAsync(testCert);
-
-            var domain = Assert.Single(selector.SupportedDomains);
-            Assert.Equal(CommonName, domain);
-        }
-
-        [Fact]
-        public async Task ItUsesSubjectAlternativeNameAsync()
-        {
-            var domainNames = new[]
-            {
                 "san1.test.natemcmaster.com",
                 "san2.test.natemcmaster.com",
                 "san3.test.natemcmaster.com",
             };
-            var testCert = CreateTestCert(domainNames);
-            var selector = new CertificateSelector(
-                Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance,
-                new InMemoryRuntimeCertificateStore());
+        var testCert = CreateTestCert(domainNames);
+        var selector = new CertificateSelector(
+            Options.Create(new LettuceEncryptOptions()),
+            NullLogger<CertificateSelector>.Instance,
+            new InMemoryRuntimeCertificateStore());
 
-            await selector.AddAsync(testCert);
+        await selector.AddAsync(testCert);
 
 
-            Assert.Equal(
-                new HashSet<string>(domainNames),
-                new HashSet<string>(selector.SupportedDomains));
-        }
+        Assert.Equal(
+            new HashSet<string>(domainNames),
+            new HashSet<string>(selector.SupportedDomains));
+    }
 
-        [Fact]
-        public async Task ItSelectsCertificateWithLongestTTL()
-        {
-            const string CommonName = "test.natemcmaster.com";
-            var fiveDays = CreateTestCert(CommonName, DateTimeOffset.Now.AddDays(5));
-            var tenDays = CreateTestCert(CommonName, DateTimeOffset.Now.AddDays(10));
+    [Fact]
+    public async Task ItSelectsCertificateWithLongestTTL()
+    {
+        const string CommonName = "test.natemcmaster.com";
+        var fiveDays = CreateTestCert(CommonName, DateTimeOffset.Now.AddDays(5));
+        var tenDays = CreateTestCert(CommonName, DateTimeOffset.Now.AddDays(10));
 
-            var selector = new CertificateSelector(
-                Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance,
-                new InMemoryRuntimeCertificateStore());
+        var selector = new CertificateSelector(
+            Options.Create(new LettuceEncryptOptions()),
+            NullLogger<CertificateSelector>.Instance,
+            new InMemoryRuntimeCertificateStore());
 
-            await selector.AddAsync(fiveDays);
-            await selector.AddAsync(tenDays);
+        await selector.AddAsync(fiveDays);
+        await selector.AddAsync(tenDays);
 
-            Assert.Same(tenDays, await selector.SelectAsync(Mock.Of<ConnectionContext>(), CommonName));
+        Assert.Same(tenDays, await selector.SelectAsync(Mock.Of<ConnectionContext>(), CommonName));
 
-            await selector.ResetAsync(CommonName);
+        await selector.ResetAsync(CommonName);
 
-            Assert.Null(await selector.SelectAsync(Mock.Of<ConnectionContext>(), CommonName));
+        Assert.Null(await selector.SelectAsync(Mock.Of<ConnectionContext>(), CommonName));
 
-            await selector.AddAsync(tenDays);
-            await selector.AddAsync(fiveDays);
+        await selector.AddAsync(tenDays);
+        await selector.AddAsync(fiveDays);
 
-            Assert.Same(tenDays, await selector.SelectAsync(Mock.Of<ConnectionContext>(), CommonName));
-        }
+        Assert.Same(tenDays, await selector.SelectAsync(Mock.Of<ConnectionContext>(), CommonName));
     }
 }

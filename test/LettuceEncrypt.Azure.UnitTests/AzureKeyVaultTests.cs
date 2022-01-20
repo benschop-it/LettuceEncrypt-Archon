@@ -17,69 +17,65 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-#if NETCOREAPP2_1
-using IHostEnvironment = Microsoft.Extensions.Hosting.IHostingEnvironment;
-#endif
+namespace LettuceEncrypt.Azure.UnitTests;
 
-namespace LettuceEncrypt.Azure.UnitTests
+public class AzureKeyVaultTests
 {
-    public class AzureKeyVaultTests
+    private static void DefaultConfigure(AzureKeyVaultLettuceEncryptOptions options)
     {
-        private static void DefaultConfigure(AzureKeyVaultLettuceEncryptOptions options)
-        {
-            options.AzureKeyVaultEndpoint = "http://something";
-        }
+        options.AzureKeyVaultEndpoint = "http://something";
+    }
 
-        [Fact]
-        public void SourceAndRepositorySameInstance()
-        {
-            var provider = new ServiceCollection()
-                .AddSingleton<IHostEnvironment, HostingEnvironment>()
-                .AddLogging()
-                .AddLettuceEncrypt()
-                .PersistCertificatesToAzureKeyVault(DefaultConfigure)
-                .Services
-                .BuildServiceProvider(validateScopes: true);
+    [Fact]
+    public void SourceAndRepositorySameInstance()
+    {
+        var provider = new ServiceCollection()
+            .AddSingleton<IHostEnvironment, HostingEnvironment>()
+            .AddLogging()
+            .AddLettuceEncrypt()
+            .PersistCertificatesToAzureKeyVault(DefaultConfigure)
+            .Services
+            .BuildServiceProvider(validateScopes: true);
 
 
-            var repository = provider.GetServices<ICertificateRepository>().OfType<AzureKeyVaultCertificateRepository>()
-                .First();
-            var source = provider.GetServices<ICertificateSource>().OfType<AzureKeyVaultCertificateRepository>()
-                .First();
+        var repository = provider.GetServices<ICertificateRepository>().OfType<AzureKeyVaultCertificateRepository>()
+            .First();
+        var source = provider.GetServices<ICertificateSource>().OfType<AzureKeyVaultCertificateRepository>()
+            .First();
 
-            Assert.Same(source, repository);
-        }
+        Assert.Same(source, repository);
+    }
 
-        [Fact]
-        public void MultipleCallsToPersistCertificatesToAzureKeyVaultDoesNotDuplicateServices()
-        {
-            var provider = new ServiceCollection()
-                .AddSingleton<IHostEnvironment, HostingEnvironment>()
-                .AddLogging()
-                .AddLettuceEncrypt()
-                .PersistCertificatesToAzureKeyVault(DefaultConfigure)
-                .PersistCertificatesToAzureKeyVault(DefaultConfigure)
-                .PersistCertificatesToAzureKeyVault(DefaultConfigure)
-                .Services
-                .BuildServiceProvider(validateScopes: true);
+    [Fact]
+    public void MultipleCallsToPersistCertificatesToAzureKeyVaultDoesNotDuplicateServices()
+    {
+        var provider = new ServiceCollection()
+            .AddSingleton<IHostEnvironment, HostingEnvironment>()
+            .AddLogging()
+            .AddLettuceEncrypt()
+            .PersistCertificatesToAzureKeyVault(DefaultConfigure)
+            .PersistCertificatesToAzureKeyVault(DefaultConfigure)
+            .PersistCertificatesToAzureKeyVault(DefaultConfigure)
+            .Services
+            .BuildServiceProvider(validateScopes: true);
 
 
-            Assert.Single(provider.GetServices<ICertificateRepository>().OfType<AzureKeyVaultCertificateRepository>());
-            Assert.Single(provider.GetServices<ICertificateSource>().OfType<AzureKeyVaultCertificateRepository>());
-        }
+        Assert.Single(provider.GetServices<ICertificateRepository>().OfType<AzureKeyVaultCertificateRepository>());
+        Assert.Single(provider.GetServices<ICertificateSource>().OfType<AzureKeyVaultCertificateRepository>());
+    }
 
-        [Fact]
-        public async Task ImportCertificateChecksDuplicate()
-        {
-            const string Domain1 = "github.com";
-            const string Domain2 = "azure.com";
+    [Fact]
+    public async Task ImportCertificateChecksDuplicate()
+    {
+        const string Domain1 = "github.com";
+        const string Domain2 = "azure.com";
 
-            var certClient = new Mock<CertificateClient>();
-            var certClientFactory = new Mock<ICertificateClientFactory>();
-            certClientFactory.Setup(c => c.Create()).Returns(certClient.Object);
-            var options = Options.Create(new LettuceEncryptOptions());
+        var certClient = new Mock<CertificateClient>();
+        var certClientFactory = new Mock<ICertificateClientFactory>();
+        certClientFactory.Setup(c => c.Create()).Returns(certClient.Object);
+        var options = Options.Create(new LettuceEncryptOptions());
 
-            options.Value.DomainNames = new[] { Domain1, Domain2 };
+        options.Value.DomainNames = new[] { Domain1, Domain2 };
 
             var repository = new AzureKeyVaultCertificateRepository(
                 certClientFactory.Object,
@@ -92,17 +88,17 @@ namespace LettuceEncrypt.Azure.UnitTests
                 await repository.SaveAsync(certificateToSave, CancellationToken.None);
             }
 
-            certClient.Verify(t => t.GetCertificateAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain1),
-                CancellationToken.None));
-            certClient.Verify(t => t.GetCertificateAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain2),
-                CancellationToken.None));
-        }
+        certClient.Verify(t => t.GetCertificateAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain1),
+            CancellationToken.None));
+        certClient.Verify(t => t.GetCertificateAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain2),
+            CancellationToken.None));
+    }
 
-        [Fact]
-        public async Task GetCertificateLooksForDomainsAsync()
-        {
-            const string Domain1 = "github.com";
-            const string Domain2 = "azure.com";
+    [Fact]
+    public async Task GetCertificateLooksForDomainsAsync()
+    {
+        const string Domain1 = "github.com";
+        const string Domain2 = "azure.com";
 
             var domainLoader = new Mock<IDomainLoader>();
             domainLoader.Setup(x => x.GetDomainCertsAsync(default, false))
@@ -115,21 +111,20 @@ namespace LettuceEncrypt.Azure.UnitTests
             secretClientFactory.Setup(c => c.Create()).Returns(secretClient.Object);
             var options = Options.Create(new LettuceEncryptOptions());
 
-            options.Value.DomainNames = new[] { Domain1, Domain2 };
+        options.Value.DomainNames = new[] { Domain1, Domain2 };
 
             var repository = new AzureKeyVaultCertificateRepository(
                 Mock.Of<ICertificateClientFactory>(),
                 secretClientFactory.Object, domainLoader.Object,
                 NullLogger<AzureKeyVaultCertificateRepository>.Instance);
 
-            var certificates = await repository.GetCertificatesAsync(CancellationToken.None);
+        var certificates = await repository.GetCertificatesAsync(CancellationToken.None);
 
-            Assert.Empty(certificates);
+        Assert.Empty(certificates);
 
-            secretClient.Verify(t => t.GetSecretAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain1),
-                null, CancellationToken.None));
-            secretClient.Verify(t => t.GetSecretAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain2),
-                null, CancellationToken.None));
-        }
+        secretClient.Verify(t => t.GetSecretAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain1),
+            null, CancellationToken.None));
+        secretClient.Verify(t => t.GetSecretAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain2),
+            null, CancellationToken.None));
     }
 }
