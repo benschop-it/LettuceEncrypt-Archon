@@ -103,23 +103,23 @@ internal class CertificateSelector : IServerCertificateSelector
     public async Task<X509Certificate2?> SelectAsync(ConnectionContext context, string? domainName)
     {
 #if NETCOREAPP3_1_OR_GREATER
-            if (await _runtimeCertificateStore.AnyChallengeCertAsync())
+        if (await _runtimeCertificateStore.AnyChallengeCertAsync())
+        {
+            // var sslStream = context.Features.Get<SslStream>();
+            // sslStream.NegotiatedApplicationProtocol hasn't been set yet, so we have to assume that
+            // if ALPN challenge certs are configured, we must respond with those.
+
+            if (domainName != null)
             {
-                // var sslStream = context.Features.Get<SslStream>();
-                // sslStream.NegotiatedApplicationProtocol hasn't been set yet, so we have to assume that
-                // if ALPN challenge certs are configured, we must respond with those.
-
-                if (domainName != null)
+                var challengeCert = await _runtimeCertificateStore.GetChallengeCertAsync(domainName);
+                if (challengeCert != null)
                 {
-                    var challengeCert = await _runtimeCertificateStore.GetChallengeCertAsync(domainName);
-                    if (challengeCert != null)
-                    {
-                        _logger.LogTrace("Using ALPN challenge cert for {domainName}", domainName);
+                    _logger.LogTrace("Using ALPN challenge cert for {domainName}", domainName);
 
-                        return challengeCert;
-                    }
+                    return challengeCert;
                 }
             }
+        }
 #elif NETSTANDARD2_0
 #else
 #error Update TFMs

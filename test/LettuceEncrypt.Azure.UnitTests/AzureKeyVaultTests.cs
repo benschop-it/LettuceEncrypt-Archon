@@ -77,16 +77,16 @@ public class AzureKeyVaultTests
 
         options.Value.DomainNames = new[] { Domain1, Domain2 };
 
-            var repository = new AzureKeyVaultCertificateRepository(
-                certClientFactory.Object,
-                Mock.Of<ISecretClientFactory>(),
-                Mock.Of<IDomainLoader>(),
-                NullLogger<AzureKeyVaultCertificateRepository>.Instance);
-            foreach (var domain in options.Value.DomainNames)
-            {
-                var certificateToSave = TestUtils.CreateTestCert(domain);
-                await repository.SaveAsync(certificateToSave, CancellationToken.None);
-            }
+        var repository = new AzureKeyVaultCertificateRepository(
+            certClientFactory.Object,
+            Mock.Of<ISecretClientFactory>(),
+            Mock.Of<IDomainLoader>(),
+            NullLogger<AzureKeyVaultCertificateRepository>.Instance);
+        foreach (var domain in options.Value.DomainNames)
+        {
+            var certificateToSave = TestUtils.CreateTestCert(domain);
+            await repository.SaveAsync(certificateToSave, CancellationToken.None);
+        }
 
         certClient.Verify(t => t.GetCertificateAsync(AzureKeyVaultCertificateRepository.NormalizeHostName(Domain1),
             CancellationToken.None));
@@ -100,23 +100,23 @@ public class AzureKeyVaultTests
         const string Domain1 = "github.com";
         const string Domain2 = "azure.com";
 
-            var domainLoader = new Mock<IDomainLoader>();
-            domainLoader.Setup(x => x.GetDomainCertsAsync(default, false))
-                .Returns(() => Task.FromResult(
-                    new[] { new SingleDomainCert { Domain = Domain1 }, new SingleDomainCert { Domain = Domain2 } }.AsEnumerable<IDomainCert>()
-                ));
+        var domainLoader = new Mock<IDomainLoader>();
+        domainLoader.Setup(x => x.GetDomainCertsAsync(default, false))
+            .Returns(() => Task.FromResult(
+                new[] { new SingleDomainCert { Domain = Domain1 }, new SingleDomainCert { Domain = Domain2 } }.AsEnumerable<IDomainCert>()
+            ));
 
-            var secretClient = new Mock<SecretClient>();
-            var secretClientFactory = new Mock<ISecretClientFactory>();
-            secretClientFactory.Setup(c => c.Create()).Returns(secretClient.Object);
-            var options = Options.Create(new LettuceEncryptOptions());
+        var secretClient = new Mock<SecretClient>();
+        var secretClientFactory = new Mock<ISecretClientFactory>();
+        secretClientFactory.Setup(c => c.Create()).Returns(secretClient.Object);
+        var options = Options.Create(new LettuceEncryptOptions());
 
         options.Value.DomainNames = new[] { Domain1, Domain2 };
 
-            var repository = new AzureKeyVaultCertificateRepository(
-                Mock.Of<ICertificateClientFactory>(),
-                secretClientFactory.Object, domainLoader.Object,
-                NullLogger<AzureKeyVaultCertificateRepository>.Instance);
+        var repository = new AzureKeyVaultCertificateRepository(
+            Mock.Of<ICertificateClientFactory>(),
+            secretClientFactory.Object, domainLoader.Object,
+            NullLogger<AzureKeyVaultCertificateRepository>.Instance);
 
         var certificates = await repository.GetCertificatesAsync(CancellationToken.None);
 

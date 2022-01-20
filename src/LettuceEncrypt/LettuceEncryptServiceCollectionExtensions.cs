@@ -45,28 +45,28 @@ public static class LettuceEncryptServiceCollectionExtensions
 
         services.TryAddSingleton<ICertificateAuthorityConfiguration, DefaultCertificateAuthorityConfiguration>();
 
-            services
-                .AddSingleton<IRuntimeCertificateStore, InMemoryRuntimeCertificateStore>()
-                .AddSingleton<CertificateSelector>()
-                .AddSingleton<IServerCertificateSelector>(s => s.GetRequiredService<CertificateSelector>())
-                .AddSingleton<IConsole>(PhysicalConsole.Singleton)
-                .AddSingleton<IClock, SystemClock>()
-                .AddSingleton<TermsOfServiceChecker>()
-                .AddSingleton<StartupCertificateLoader>()
-                .AddSingleton<ICertificateSource, DeveloperCertLoader>()
-                .AddSingleton<IAcmeCertificateLoader, AcmeCertificateLoader>()
-                .AddSingleton<IHostedService>(x => x.GetRequiredService<IAcmeCertificateLoader>())
-                .AddSingleton<AcmeCertificateFactory>()
-                .AddSingleton<AcmeClientFactory>()
-                .AddSingleton<IHttpChallengeResponseStore, InMemoryHttpChallengeResponseStore>()
-                .AddSingleton<X509CertStore>()
-                .AddSingleton<ICertificateSource>(x => x.GetRequiredService<X509CertStore>())
-                .AddSingleton<ICertificateRepository>(x => x.GetRequiredService<X509CertStore>())
-                .AddSingleton<HttpChallengeResponseMiddleware>()
-                .AddSingleton<TlsAlpnChallengeResponder>()
-                .AddSingleton<IStartupFilter, HttpChallengeStartupFilter>()
-                .AddSingleton<DomainLoader>()
-                .AddSingleton<IDomainLoader>(x => x.GetRequiredService<DomainLoader>());
+        services
+            .AddSingleton<IRuntimeCertificateStore, InMemoryRuntimeCertificateStore>()
+            .AddSingleton<CertificateSelector>()
+            .AddSingleton<IServerCertificateSelector>(s => s.GetRequiredService<CertificateSelector>())
+            .AddSingleton<IConsole>(PhysicalConsole.Singleton)
+            .AddSingleton<IClock, SystemClock>()
+            .AddSingleton<TermsOfServiceChecker>()
+            .AddSingleton<StartupCertificateLoader>()
+            .AddSingleton<ICertificateSource, DeveloperCertLoader>()
+            .AddSingleton<IAcmeCertificateLoader, AcmeCertificateLoader>()
+            .AddSingleton<IHostedService>(x => x.GetRequiredService<IAcmeCertificateLoader>())
+            .AddSingleton<AcmeCertificateFactory>()
+            .AddSingleton<AcmeClientFactory>()
+            .AddSingleton<IHttpChallengeResponseStore, InMemoryHttpChallengeResponseStore>()
+            .AddSingleton<X509CertStore>()
+            .AddSingleton<ICertificateSource>(x => x.GetRequiredService<X509CertStore>())
+            .AddSingleton<ICertificateRepository>(x => x.GetRequiredService<X509CertStore>())
+            .AddSingleton<HttpChallengeResponseMiddleware>()
+            .AddSingleton<TlsAlpnChallengeResponder>()
+            .AddSingleton<IStartupFilter, HttpChallengeStartupFilter>()
+            .AddSingleton<DomainLoader>()
+            .AddSingleton<IDomainLoader>(x => x.GetRequiredService<DomainLoader>());
 
         services.AddSingleton<IConfigureOptions<LettuceEncryptOptions>>(s =>
         {

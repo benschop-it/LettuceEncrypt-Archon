@@ -18,23 +18,23 @@ public class StartupCertificateLoaderTests
         var testCert = TestUtils.CreateTestCert("test1.natemcmaster.com");
         IEnumerable<X509Certificate2> certs = new[] { testCert };
 
-            var selector = new Mock<CertificateSelector>(
-                Options.Create(new LettuceEncryptOptions()),
-                NullLogger<CertificateSelector>.Instance,
-                new InMemoryRuntimeCertificateStore());
+        var selector = new Mock<CertificateSelector>(
+            Options.Create(new LettuceEncryptOptions()),
+            NullLogger<CertificateSelector>.Instance,
+            new InMemoryRuntimeCertificateStore());
 
-            selector
-                .Setup(s => s.AddAsync(testCert))
-                .Verifiable();
+        selector
+            .Setup(s => s.AddAsync(testCert))
+            .Verifiable();
 
         var source1 = CreateCertSource(certs);
         var source2 = CreateCertSource(certs);
 
-            var startupLoader = new StartupCertificateLoader(
-                new[] { source1.Object, source2.Object },
-                selector.Object, NullLogger<StartupCertificateLoader>.Instance);
+        var startupLoader = new StartupCertificateLoader(
+            new[] { source1.Object, source2.Object },
+            selector.Object, NullLogger<StartupCertificateLoader>.Instance);
 
-            await startupLoader.LoadAsync(default);
+        await startupLoader.LoadAsync(default);
 
         selector.VerifyAll();
         source1.VerifyAll();

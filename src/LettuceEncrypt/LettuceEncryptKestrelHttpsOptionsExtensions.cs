@@ -71,20 +71,20 @@ public static class LettuceEncryptKestrelHttpsOptionsExtensions
         IServiceProvider applicationServices)
     {
 #if NET6_0_OR_GREATER
-            var selector = applicationServices.GetService<IServerCertificateSelector>();
+        var selector = applicationServices.GetService<IServerCertificateSelector>();
 
-            if (selector is null)
-            {
-                throw new InvalidOperationException(MissingServicesMessage);
-            }
+        if (selector is null)
+        {
+            throw new InvalidOperationException(MissingServicesMessage);
+        }
 
-            var tlsResponder = applicationServices.GetService<TlsAlpnChallengeResponder>();
-            if (tlsResponder is null)
-            {
-                throw new InvalidOperationException(MissingServicesMessage);
-            }
+        var tlsResponder = applicationServices.GetService<TlsAlpnChallengeResponder>();
+        if (tlsResponder is null)
+        {
+            throw new InvalidOperationException(MissingServicesMessage);
+        }
 
-            return listenOptions.UseLettuceEncrypt(selector, tlsResponder);
+        return listenOptions.UseLettuceEncrypt(selector, tlsResponder);
 #elif NETCOREAPP3_1_OR_GREATER || NETSTANDARD2_0
             return listenOptions;
 #else
@@ -92,25 +92,25 @@ public static class LettuceEncryptKestrelHttpsOptionsExtensions
 #endif
     }
 #if NET6_0_OR_GREATER
-        internal static ListenOptions UseLettuceEncrypt(
-            this ListenOptions listenOptions,
-            IServerCertificateSelector selector,
-            TlsAlpnChallengeResponder tlsAlpnChallengeResponder)
+    internal static ListenOptions UseLettuceEncrypt(
+        this ListenOptions listenOptions,
+        IServerCertificateSelector selector,
+        TlsAlpnChallengeResponder tlsAlpnChallengeResponder)
+    {
+        return listenOptions.UseHttps(new TlsHandshakeCallbackOptions()
         {
-            return listenOptions.UseHttps(new TlsHandshakeCallbackOptions()
+            OnConnection = async ctx =>
             {
-                OnConnection = async ctx =>
-                {
-                    var options = new SslServerAuthenticationOptions();
+                var options = new SslServerAuthenticationOptions();
 
-                    tlsAlpnChallengeResponder.OnSslAuthenticate(ctx.Connection, options);
+                tlsAlpnChallengeResponder.OnSslAuthenticate(ctx.Connection, options);
 
-                    options.ServerCertificate = await selector.SelectAsync(ctx.Connection, ctx.ClientHelloInfo.ServerName);
+                options.ServerCertificate = await selector.SelectAsync(ctx.Connection, ctx.ClientHelloInfo.ServerName);
 
-                    return options;
-                }
-            });
-        }
+                return options;
+            }
+        });
+    }
 #endif
 #if NETCOREAPP3_1_OR_GREATER
     internal static HttpsConnectionAdapterOptions UseLettuceEncrypt(
