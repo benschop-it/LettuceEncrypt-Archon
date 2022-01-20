@@ -65,16 +65,6 @@ public class ConfigurationBindingTests
         Assert.Equal(challengeType, options.AllowedChallengeTypes);
     }
 
-    [Fact]
-    public void DoesNotSupportWildcardDomains()
-    {
-        Assert.Throws<OptionsValidationException>(() =>
-            ParseOptions(new()
-            {
-                ["LettuceEncrypt:DomainNames:0"] = "*.natemcmaster.com",
-            }));
-    }
-
     private LettuceEncryptOptions ParseOptions(Dictionary<string, string> input)
     {
         var config = new ConfigurationBuilder()
