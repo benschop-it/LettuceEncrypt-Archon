@@ -77,27 +77,28 @@ namespace LettuceEncrypt.Internal.AcmeStates
                             newCert.Subject,
                             newCert.Thumbprint);
 
-                        saveTasks.Add(SaveCertificateAsync(newCert, cancellationToken));
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostnames}", domainCert.Domains);
-                        throw;
-                    }
+                    // Immediately add to selector incase of overlap between domain sources.
+                    await _selector.AddAsync(newCert);
+
+                    saveTasks.Add(SaveCertificateAsync(newCert, cancellationToken));
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostnames}", domainCert.Domains);
+                    throw;
                 }
             }
+        }
 
             await Task.WhenAll(saveTasks);
 
             return MoveTo<CheckForRenewalState>();
         }
 
-        private async Task SaveCertificateAsync(X509Certificate2 cert, CancellationToken cancellationToken)
-        {
-            await _selector.AddAsync(cert);
-
-            var saveTasks = new List<Task>
+    private async Task SaveCertificateAsync(X509Certificate2 cert, CancellationToken cancellationToken)
+    {
+        var saveTasks = new List<Task>
             {
                 Task.Delay(TimeSpan.FromMinutes(5), cancellationToken)
             };
