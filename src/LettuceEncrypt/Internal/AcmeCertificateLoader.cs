@@ -12,82 +12,81 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace LettuceEncrypt.Internal
+namespace LettuceEncrypt.Internal;
+
+/// <summary>
+/// This starts the ACME state machine, which handles certificate generation and renewal
+/// </summary>
+internal class AcmeCertificateLoader : BackgroundService, IAcmeCertificateLoader
 {
-    /// <summary>
-    /// This starts the ACME state machine, which handles certificate generation and renewal
-    /// </summary>
-    internal class AcmeCertificateLoader : BackgroundService, IAcmeCertificateLoader
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger _logger;
+
+    private readonly IServer _server;
+    private readonly IConfiguration _config;
+
+    public AcmeCertificateLoader(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<AcmeCertificateLoader> logger,
+        IServer server,
+        IConfiguration config)
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger _logger;
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+        _server = server;
+        _config = config;
+    }
 
-        private readonly IServer _server;
-        private readonly IConfiguration _config;
+    public bool IsRunning { get; private set; } = false;
 
-        public AcmeCertificateLoader(
-            IServiceScopeFactory serviceScopeFactory,
-            ILogger<AcmeCertificateLoader> logger,
-            IServer server,
-            IConfiguration config)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        if (!_server.GetType().Name.StartsWith(nameof(KestrelServer)))
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
-            _server = server;
-            _config = config;
+            var serverType = _server.GetType().FullName;
+            _logger.LogWarning(
+                "LettuceEncrypt can only be used with Kestrel and is not supported on {serverType} servers. Skipping certificate provisioning.",
+                serverType);
+            return;
         }
 
-        public bool IsRunning { get; private set; } = false;
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        if (_config.GetValue<bool>("UseIISIntegration"))
         {
-            if (!_server.GetType().Name.StartsWith(nameof(KestrelServer)))
-            {
-                var serverType = _server.GetType().FullName;
-                _logger.LogWarning(
-                    "LettuceEncrypt can only be used with Kestrel and is not supported on {serverType} servers. Skipping certificate provisioning.",
-                    serverType);
-                return;
-            }
+            _logger.LogWarning(
+                "LettuceEncrypt does not work with apps hosting in IIS. IIS does not allow for dynamic HTTPS certificate binding." +
+                "Skipping certificate provisioning.");
+            return;
+        }
 
-            if (_config.GetValue<bool>("UseIISIntegration"))
-            {
-                _logger.LogWarning(
-                    "LettuceEncrypt does not work with apps hosting in IIS. IIS does not allow for dynamic HTTPS certificate binding." +
-                    "Skipping certificate provisioning.");
-                return;
-            }
+        using var acmeStateMachineScope = _serviceScopeFactory.CreateScope();
 
-            using var acmeStateMachineScope = _serviceScopeFactory.CreateScope();
+        try
+        {
+            IsRunning = true;
 
-            try
-            {
-                IsRunning = true;
+            IAcmeState state = acmeStateMachineScope.ServiceProvider.GetRequiredService<ServerStartupState>();
 
-                IAcmeState state = acmeStateMachineScope.ServiceProvider.GetRequiredService<ServerStartupState>();
-
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    _logger.LogTrace("ACME state transition: moving to {stateName}", state.GetType().Name);
-                    state = await state.MoveNextAsync(stoppingToken);
-                }
-            }
-            catch (OperationCanceledException)
+            while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogDebug("State machine cancellation requested. Exiting...");
+                _logger.LogTrace("ACME state transition: moving to {stateName}", state.GetType().Name);
+                state = await state.MoveNextAsync(stoppingToken);
             }
-            catch (AggregateException ex) when (ex.InnerException != null)
-            {
-                _logger.LogError(0, ex.InnerException, "ACME state machine encountered unhandled error");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(0, ex, "ACME state machine encountered unhandled error");
-            }
-            finally
-            {
-                IsRunning = false;
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug("State machine cancellation requested. Exiting...");
+        }
+        catch (AggregateException ex) when (ex.InnerException != null)
+        {
+            _logger.LogError(0, ex.InnerException, "ACME state machine encountered unhandled error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(0, ex, "ACME state machine encountered unhandled error");
+        }
+        finally
+        {
+            IsRunning = false;
         }
     }
 }
