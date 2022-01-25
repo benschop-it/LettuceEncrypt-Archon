@@ -54,8 +54,6 @@ public static class LettuceEncryptServiceCollectionExtensions
             .AddSingleton<TermsOfServiceChecker>()
             .AddSingleton<StartupCertificateLoader>()
             .AddSingleton<ICertificateSource, DeveloperCertLoader>()
-            .AddSingleton<IAcmeCertificateLoader, AcmeCertificateLoader>()
-            .AddSingleton<IHostedService>(x => x.GetRequiredService<IAcmeCertificateLoader>())
             .AddSingleton<AcmeCertificateFactory>()
             .AddSingleton<AcmeClientFactory>()
             .AddSingleton<IHttpChallengeResponseStore, InMemoryHttpChallengeResponseStore>()
@@ -76,7 +74,22 @@ public static class LettuceEncryptServiceCollectionExtensions
 
         services.Configure(configure);
 
+        return new LettuceEncryptServiceBuilder(services);
+    }
+
+    /// <summary>
+    /// Add ACME background service that handles certificate loading, generation, and saving.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    public static ILettuceEncryptServiceBuilder AddLettuceEncryptAcmeService(this ILettuceEncryptServiceBuilder builder)
+    {
+        var services = builder.Services;
+
         // The state machine should run in its own scope
+        services.AddSingleton<IAcmeCertificateLoader, AcmeCertificateLoader>()
+            .AddHostedService(x => x.GetRequiredService<IAcmeCertificateLoader>());
+
         services.AddScoped<AcmeStateMachineContext>();
 
         services.AddSingleton(TerminalState.Singleton);
@@ -87,6 +100,6 @@ public static class LettuceEncryptServiceCollectionExtensions
             .AddTransient<CheckForRenewalState>()
             .AddTransient<BeginCertificateCreationState>();
 
-        return new LettuceEncryptServiceBuilder(services);
+        return builder;
     }
 }

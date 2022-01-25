@@ -33,3 +33,4 @@ LettuceEncrypt.IHttpChallengeResponseStore.AddChallengeResponse(string! token, s
 LettuceEncrypt.IHttpChallengeResponseStore.TryGetResponse(string! token, out string? value) -> bool
 LettuceEncrypt.IRuntimeCertificateStore
 static Microsoft.AspNetCore.Hosting.LettuceEncryptKestrelHttpsOptionsExtensions.UseLettuceEncrypt(this Microsoft.AspNetCore.Server.Kestrel.Core.ListenOptions! listenOptions, System.IServiceProvider! applicationServices) -> Microsoft.AspNetCore.Server.Kestrel.Core.ListenOptions!
+static Microsoft.Extensions.DependencyInjection.LettuceEncryptServiceCollectionExtensions.AddLettuceEncryptAcmeService(this LettuceEncrypt.ILettuceEncryptServiceBuilder! builder) -> LettuceEncrypt.ILettuceEncryptServiceBuilder!

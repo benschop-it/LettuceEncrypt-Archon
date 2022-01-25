@@ -4,10 +4,8 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using McMaster.AspNetCore.Kestrel.Certificates;
 using Microsoft.AspNetCore.Connections;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace LettuceEncrypt.Internal;
@@ -95,12 +93,12 @@ internal class CertificateSelector : IServerCertificateSelector
         return true;
     }
 
-    public X509Certificate2? Select(ConnectionContext context, string? domainName)
+    public X509Certificate2? Select(ConnectionContext? context, string? domainName)
     {
         return SelectAsync(context, domainName).Result;
     }
 
-    public async Task<X509Certificate2?> SelectAsync(ConnectionContext context, string? domainName)
+    public async Task<X509Certificate2?> SelectAsync(ConnectionContext? context, string? domainName)
     {
 #if NETCOREAPP3_1_OR_GREATER
         if (await _runtimeCertificateStore.AnyChallengeCertAsync())

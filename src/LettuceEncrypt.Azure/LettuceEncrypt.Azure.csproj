@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
@@ -11,10 +11,6 @@
 See https://nuget.org/packages/LettuceEncrypt for more details.
     </PackageDescription>
     <PackageId>LettuceEncrypt-Archon.Azure</PackageId>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <DefineConstants>$(DefineConstants);FEATURE_VALIDATE_DATA_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
