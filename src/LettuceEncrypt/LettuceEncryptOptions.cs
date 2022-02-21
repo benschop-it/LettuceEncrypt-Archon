@@ -11,13 +11,15 @@ namespace LettuceEncrypt;
 /// </summary>
 public class LettuceEncryptOptions
 {
-    private string[] _domainNames = Array.Empty<string>();
+    private List<List<string>> _domainNames = new List<List<string>>();
     private bool? _useStagingServer;
 
     /// <summary>
-    /// The domain names for which to generate certificates.
+    /// A list of lists of domain names for which to generate certificates.
+    /// The domains in each child list share a single certificate.
+    /// Each child list will have its own certificate.
     /// </summary>
-    public string[] DomainNames
+    public List<List<string>> DomainNames
     {
         get => _domainNames;
         set => _domainNames = value ?? throw new ArgumentNullException(nameof(value));

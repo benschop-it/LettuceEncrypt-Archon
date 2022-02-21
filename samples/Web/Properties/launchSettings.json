@@ -12,7 +12,8 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Staging"
+        "ASPNETCORE_ENVIRONMENT": "Staging",
+        "REQUIRE_CLIENT_CERT": "true"
       },
       "applicationUrl": "http://localhost:5001;https://localhost:5002"
     }

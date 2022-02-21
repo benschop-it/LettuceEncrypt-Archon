@@ -1,13 +1,18 @@
 ﻿// Copyright (c) Nate McMaster.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using LettuceEncrypt;
+
 namespace Web;
 
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddLettuceEncrypt();
+        services.AddLettuceEncrypt()
+            .AddLettuceEncryptAcmeService()
+            // Use this if you want to persist your account and certificates.
+            .PersistDataToDirectory(new DirectoryInfo("C:/LettuceEncrypt/"), "Password123"); ;
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

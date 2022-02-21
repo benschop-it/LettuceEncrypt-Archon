@@ -75,14 +75,15 @@ public class AzureKeyVaultTests
         certClientFactory.Setup(c => c.Create()).Returns(certClient.Object);
         var options = Options.Create(new LettuceEncryptOptions());
 
-        options.Value.DomainNames = new[] { Domain1, Domain2 };
+        options.Value.DomainNames = new List<List<string>>() { new List<string>() { Domain1, Domain2 } };
 
         var repository = new AzureKeyVaultCertificateRepository(
             certClientFactory.Object,
             Mock.Of<ISecretClientFactory>(),
             Mock.Of<IDomainLoader>(),
+            Mock.Of<IOptions<LettuceEncryptOptions>>(),
             NullLogger<AzureKeyVaultCertificateRepository>.Instance);
-        foreach (var domain in options.Value.DomainNames)
+        foreach (var domain in options.Value.DomainNames.First())
         {
             var certificateToSave = TestUtils.CreateTestCert(domain);
             await repository.SaveAsync(certificateToSave, CancellationToken.None);
@@ -101,7 +102,7 @@ public class AzureKeyVaultTests
         const string Domain2 = "azure.com";
 
         var domainLoader = new Mock<IDomainLoader>();
-        domainLoader.Setup(x => x.GetDomainCertsAsync(default, false))
+        domainLoader.Setup(x => x.GetDomainCertsAsync(default, new List<string>() { Domain1, Domain2 }, false))
             .Returns(() => Task.FromResult(
                 new[] { new SingleDomainCert { Domain = Domain1 }, new SingleDomainCert { Domain = Domain2 } }.AsEnumerable<IDomainCert>()
             ));
@@ -111,11 +112,12 @@ public class AzureKeyVaultTests
         secretClientFactory.Setup(c => c.Create()).Returns(secretClient.Object);
         var options = Options.Create(new LettuceEncryptOptions());
 
-        options.Value.DomainNames = new[] { Domain1, Domain2 };
+        options.Value.DomainNames = new List<List<string>>() { new List<string> { Domain1, Domain2 } };
 
         var repository = new AzureKeyVaultCertificateRepository(
             Mock.Of<ICertificateClientFactory>(),
             secretClientFactory.Object, domainLoader.Object,
+            options,
             NullLogger<AzureKeyVaultCertificateRepository>.Instance);
 
         var certificates = await repository.GetCertificatesAsync(CancellationToken.None);

@@ -33,7 +33,7 @@ LettuceEncrypt.LettuceEncryptOptions.AcceptTermsOfService.get -> bool
 LettuceEncrypt.LettuceEncryptOptions.AcceptTermsOfService.set -> void
 LettuceEncrypt.LettuceEncryptOptions.AllowedChallengeTypes.get -> LettuceEncrypt.Acme.ChallengeType
 LettuceEncrypt.LettuceEncryptOptions.AllowedChallengeTypes.set -> void
-LettuceEncrypt.LettuceEncryptOptions.DomainNames.get -> string![]!
+LettuceEncrypt.LettuceEncryptOptions.DomainNames.get -> System.Collections.Generic.List<System.Collections.Generic.List<string!>!>!
 LettuceEncrypt.LettuceEncryptOptions.DomainNames.set -> void
 LettuceEncrypt.LettuceEncryptOptions.EmailAddress.get -> string!
 LettuceEncrypt.LettuceEncryptOptions.EmailAddress.set -> void

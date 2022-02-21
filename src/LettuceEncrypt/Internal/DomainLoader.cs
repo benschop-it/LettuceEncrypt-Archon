@@ -19,7 +19,7 @@ namespace LettuceEncrypt
         private readonly ILogger<DomainLoader> _logger;
 
         private bool _useCache = false;
-        private List<IDomainCert> _domainCache = new List<IDomainCert>();
+        private Dictionary<string, List<IDomainCert>> _domainCache = new Dictionary<string, List<IDomainCert>>();
 
         public DomainLoader(IOptions<LettuceEncryptOptions> options,
             IEnumerable<IDomainSource> domainSources,
@@ -34,13 +34,20 @@ namespace LettuceEncrypt
         /// Load all domains from <see cref="LettuceEncryptOptions"/> and injected <see cref="IDomainSource"/>.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="domainNames">The domain names to get certificates for.</param>
         /// <param name="refreshCache">Force a cache refresh.</param>
         /// <returns>Distinct set of domains to generate certs for.</returns>
-        public async Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken, bool refreshCache = false)
+        public async Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken, IEnumerable<string> domainNames, bool refreshCache = false)
         {
+            var firstDomainName = domainNames.First();
+
             if (_useCache && !refreshCache)
             {
-                return _domainCache;
+                if (!_domainCache.ContainsKey(firstDomainName))
+                {
+                    _domainCache.Add(firstDomainName, new List<IDomainCert>());
+                }
+                return _domainCache[firstDomainName];
             }
 
             await s_sync.WaitAsync(cancellationToken);
@@ -53,11 +60,11 @@ namespace LettuceEncrypt
 
                 var domains = new List<IDomainCert>();
 
-                if (options != null && options.DomainNames.Length > 0)
+                if (options != null && domainNames.ToList().Count > 0)
                 {
                     domains.Add(new MultipleDomainCert
                     {
-                        OrderedDomains = new HashSet<string>(options.DomainNames)
+                        OrderedDomains = new HashSet<string>(domainNames)
                     });
                 }
 
@@ -68,7 +75,14 @@ namespace LettuceEncrypt
                     domains.AddRange(await domainSource.GetDomains(cancellationToken));
                 }
 
-                _domainCache = domains;
+                if (!_domainCache.ContainsKey(firstDomainName))
+                {
+                    _domainCache.Add(firstDomainName, domains);
+                }
+                else
+                {
+                    _domainCache[firstDomainName] = domains;
+                }
                 _useCache = true;
             }
             finally
@@ -76,7 +90,7 @@ namespace LettuceEncrypt
                 s_sync.Release();
             }
 
-            return _domainCache;
+            return _domainCache[firstDomainName];
         }
     }
 }

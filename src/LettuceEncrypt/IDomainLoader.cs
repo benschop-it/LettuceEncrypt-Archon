@@ -16,8 +16,9 @@ namespace LettuceEncrypt
         /// Gets domains to manage certificates for.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="domainNames">The domain names to get certificates for.</param>
         /// <param name="refreshCache">Force a cache refresh.</param>
         /// <returns>A collection of domains.</returns>
-        Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken, bool refreshCache = false);
+        Task<IEnumerable<IDomainCert>> GetDomainCertsAsync(CancellationToken cancellationToken, IEnumerable<string> domainNames, bool refreshCache = false);
     }
 }

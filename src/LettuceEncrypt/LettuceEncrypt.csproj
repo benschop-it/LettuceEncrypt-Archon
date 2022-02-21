@@ -21,6 +21,13 @@ This only works with Kestrel, which is the default server configuration for ASP.
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Certificates\**" />
+    <Content Remove="Certificates\**" />
+    <EmbeddedResource Remove="Certificates\**" />
+    <None Remove="Certificates\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

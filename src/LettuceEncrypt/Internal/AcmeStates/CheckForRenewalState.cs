@@ -39,34 +39,40 @@ internal class CheckForRenewalState : AcmeState
         {
             var checkPeriod = _options.Value.RenewalCheckPeriod;
             var daysInAdvance = _options.Value.RenewDaysInAdvance;
-            if (!checkPeriod.HasValue || !daysInAdvance.HasValue)
-            {
-                _logger.LogInformation("Automatic certificate renewal is not configured. Stopping {service}",
-                    nameof(AcmeCertificateLoader));
-                return MoveTo<TerminalState>();
-            }
+            var allDomains = _options.Value.DomainNames;
 
-            _logger.LogDebug("Loading existing certificates.");
-            await _certLoader.LoadAsync(cancellationToken);
-
-            var domainCerts = await _domains.GetDomainCertsAsync(cancellationToken, true);
-            foreach (var domainCert in domainCerts)
+            foreach (var domains in allDomains)
             {
-                foreach (var domain in domainCert.Domains)
+                if (!checkPeriod.HasValue || !daysInAdvance.HasValue)
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                    {
-                        _logger.LogDebug("Checking certificates' renewals for {hostname}", domain);
-                    }
+                    _logger.LogInformation("Automatic certificate renewal is not configured. Stopping {service}",
+                        nameof(AcmeCertificateLoader));
+                    return MoveTo<TerminalState>();
+                }
 
-                    var cert = await _selector.TryGetAsync(domain);
-                    if (cert == null || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
+                _logger.LogDebug("Loading existing certificates.");
+                await _certLoader.LoadAsync(cancellationToken);
+
+                var domainCerts = await _domains.GetDomainCertsAsync(cancellationToken, domains, true);
+                foreach (var domainCert in domainCerts)
+                {
+                    foreach (var domain in domainCert.Domains)
                     {
-                        return MoveTo<BeginCertificateCreationState>();
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                        {
+                            _logger.LogDebug("Checking certificates' renewals for {hostname}", domain);
+                        }
+
+                        var cert = await _selector.TryGetAsync(domain);
+                        if (cert == null || cert.NotAfter <= _clock.Now.DateTime + daysInAdvance.Value)
+                        {
+                            return MoveTo<BeginCertificateCreationState>();
+                        }
                     }
                 }
             }
-            await Task.Delay(checkPeriod.Value, cancellationToken);
+
+            await Task.Delay(checkPeriod!.Value, cancellationToken);
         }
 
         return MoveTo<TerminalState>();

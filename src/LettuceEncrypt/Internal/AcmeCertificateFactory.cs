@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using Certes;
 using Certes.Acme;
 using Certes.Acme.Resource;
@@ -294,6 +295,15 @@ internal class AcmeCertificateFactory
 
         var pfxBuilder = acmeCert.ToPfx(privateKey);
 
+        // In order for the staging certificates to work, we need to add letsencrypt staging root issuers
+        // to the pfx builder.
+        if (_options.Value.UseStagingServer)
+        {
+            var issuerPem1 = File.ReadAllText(@"Certificates\letsencrypt-stg-root-x1.pem");
+            var issuerPem2 = File.ReadAllText(@"Certificates\letsencrypt-stg-root-x2.pem");
+            pfxBuilder.AddIssuers(Encoding.UTF8.GetBytes(issuerPem1));
+            pfxBuilder.AddIssuers(Encoding.UTF8.GetBytes(issuerPem2));
+        }
 
         foreach (var additionalIssuersSource in _additionalIssuersSources)
         {

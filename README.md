@@ -32,7 +32,10 @@ This project is 100% organic and best served cold with ranch and carrots. 🥬
 
 ### Project status 
 
-This project is in maintenance mode. I lost interest in developing features. I will make a patch if there is a security issue. I'll also consider an update if a new .NET major version breaks and the patch fix required is small. Please see https://github.com/natemcmaster/LettuceEncrypt/security/policy if you wish to report a security concern.
+This project is in maintenance mode. The original author lost interest in developing features. He will make a patch if there is a security issue. He will also consider an update if a new .NET major version breaks and the patch fix required is small. Please see https://github.com/natemcmaster/LettuceEncrypt/security/policy if you wish to report a security concern.
+
+This fork is based on https://github.com/ArchonSystemsInc/LettuceEncrypt-Archon.
+I have added the option to generate multiple certificates. Each certificate can be used with several domain names.
 
 ## Will this work for me?
 
@@ -59,7 +62,9 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddLettuceEncrypt();
+        services
+        .AddLettuceEncrypt()
+        .AddLettuceEncryptAcmeService();
     }
 }
 ```
@@ -74,9 +79,11 @@ A few required options should be set, typically via the appsettings.json file.
         // If you don't set this in config, you will need to press "y" whenever the application starts
         "AcceptTermsOfService": true,
 
-        // You must at least one domain name
-        "DomainNames": [ "example.com", "www.example.com" ],
-
+        // Set to the domains you want to get certificates for.
+        "DomainNames": [
+          [ "test1.domain1.com", "test2.domain1.com" ],
+          [ "test1.domain2.com", "test2.domain2.com" ]
+        ],
         // You must specify an email address to register with the certificate authority
         "EmailAddress": "it-admin@example.com"
     }
@@ -142,6 +149,7 @@ public void ConfigureServices(IServiceCollection services)
 {
     services
         .AddLettuceEncrypt()
+        .AddLettuceEncryptAcmeService()
         .PersistDataToDirectory(new DirectoryInfo("C:/data/LettuceEncrypt/"), "Password123");
 }
 ```
@@ -160,6 +168,7 @@ public void ConfigureServices(IServiceCollection services)
 {
     services
         .AddLettuceEncrypt()
+        .AddLettuceEncryptAcmeService()
         .PersistCertificatesToAzureKeyVault();
 }
 ```

@@ -9,12 +9,14 @@ using Azure;
 using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace LettuceEncrypt.Azure.Internal;
 
 internal class AzureKeyVaultCertificateRepository : ICertificateRepository, ICertificateSource
 {
     private readonly IDomainLoader _domains;
+    private readonly IOptions<LettuceEncryptOptions> _options;
     private readonly ILogger<AzureKeyVaultCertificateRepository> _logger;
     private readonly ICertificateClientFactory _certificateClientFactory;
     private readonly ISecretClientFactory _secretClientFactory;
@@ -23,12 +25,14 @@ internal class AzureKeyVaultCertificateRepository : ICertificateRepository, ICer
         ICertificateClientFactory certificateClientFactory,
         ISecretClientFactory secretClientFactory,
         IDomainLoader domains,
+        IOptions<LettuceEncryptOptions> options,
         ILogger<AzureKeyVaultCertificateRepository> logger)
     {
         _certificateClientFactory = certificateClientFactory ??
                                     throw new ArgumentNullException(nameof(_certificateClientFactory));
         _secretClientFactory = secretClientFactory ?? throw new ArgumentNullException(nameof(secretClientFactory));
         _domains = domains ?? throw new ArgumentNullException(nameof(domains));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -38,7 +42,9 @@ internal class AzureKeyVaultCertificateRepository : ICertificateRepository, ICer
 
         var certs = new List<X509Certificate2>();
 
-        var domains = await _domains.GetDomainCertsAsync(cancellationToken);
+        var allDomains = _options.Value.DomainNames;
+
+        var domains = await _domains.GetDomainCertsAsync(cancellationToken, allDomains.First());
 
         foreach (var domain in domains)
         {

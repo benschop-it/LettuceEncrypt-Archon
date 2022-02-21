@@ -5,6 +5,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Certificates\letsencrypt-stg-root-x1.pem" />
+    <None Remove="Certificates\letsencrypt-stg-root-x2.pem" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Certificates\letsencrypt-stg-root-x1.pem">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Certificates\letsencrypt-stg-root-x2.pem">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\LettuceEncrypt\LettuceEncrypt.csproj" />
   </ItemGroup>
 </Project>

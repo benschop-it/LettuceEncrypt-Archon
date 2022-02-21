@@ -16,15 +16,17 @@ public class ConfigurationBindingTests
         var options = ParseOptions(new()
         {
             ["LettuceEncrypt:AcceptTermsOfService"] = "true",
-            ["LettuceEncrypt:DomainNames:0"] = "one.com",
-            ["LettuceEncrypt:DomainNames:1"] = "two.com",
+            ["LettuceEncrypt:DomainNames:0:0"] = "one_one.com",
+            ["LettuceEncrypt:DomainNames:0:1"] = "one_two.com",
+            ["LettuceEncrypt:DomainNames:1:0"] = "two_one.com",
+            ["LettuceEncrypt:DomainNames:1:1"] = "two_two.com",
             ["LettuceEncrypt:AllowedChallengeTypes"] = "Http01",
         });
 
         Assert.True(options.AcceptTermsOfService);
         Assert.Collection(options.DomainNames,
-            one => Assert.Equal("one.com", one),
-            two => Assert.Equal("two.com", two));
+            one => Assert.Equal(new List<string>() { "one_one.com", "one_two.com" }, one),
+            two => Assert.Equal(new List<string>() { "two_one.com", "two_two.com" }, two));
         Assert.Equal(Acme.ChallengeType.Http01, options.AllowedChallengeTypes);
     }
 

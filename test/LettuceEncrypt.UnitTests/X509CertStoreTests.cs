@@ -40,7 +40,7 @@ public class X509CertStoreTests : IDisposable
     public async Task ItFindsCertByCommonNameAsync()
     {
         var commonName = "x509store.read.test.natemcmaster.com";
-        _options.DomainNames = new[] { commonName };
+        _options.DomainNames = new List<List<string>>() { new List<string>() { commonName } };
         using var x509Store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
         x509Store.Open(OpenFlags.ReadWrite);
         var testCert = CreateTestCert(commonName);
@@ -97,7 +97,7 @@ public class X509CertStoreTests : IDisposable
     public async Task ItReturnsEmptyWhenCantFindCertAsync()
     {
         var commonName = "notfound.test.natemcmaster.com";
-        _options.DomainNames = new[] { commonName };
+        _options.DomainNames = new List<List<string>>() { new List<string>() { commonName } };
         var certs = await _certStore.GetCertificatesAsync(default);
         Assert.Empty(certs);
     }

@@ -43,52 +43,55 @@ internal class BeginCertificateCreationState : AcmeState
     {
         var checkPeriod = _options.Value.RenewalCheckPeriod;
         var daysInAdvance = _options.Value.RenewDaysInAdvance;
-
-        var domainCerts = await _domainLoader.GetDomainCertsAsync(cancellationToken);
-
-        var account = await _acmeCertificateFactory.GetOrCreateAccountAsync(cancellationToken);
-        _logger.LogInformation("Using account {accountId}", account.Id);
+        var allDomains = _options.Value.DomainNames;
 
         var saveTasks = new List<Task>();
 
-        foreach (var domainCert in domainCerts)
+        foreach (var domains in allDomains)
         {
-            foreach (var domain in domainCert.Domains)
+            var domainCerts = await _domainLoader.GetDomainCertsAsync(cancellationToken, domains);
+
+            var account = await _acmeCertificateFactory.GetOrCreateAccountAsync(cancellationToken);
+            _logger.LogInformation("Using account {accountId}", account.Id);
+
+            foreach (var domainCert in domainCerts)
             {
-                if (checkPeriod.HasValue && daysInAdvance.HasValue)
+                foreach (var domain in domainCert.Domains)
                 {
-                    var cert = await _selector.TryGetAsync(domain);
-                    if (cert != null && cert.NotAfter > _clock.Now.DateTime + daysInAdvance.Value)
+                    if (checkPeriod.HasValue && daysInAdvance.HasValue)
                     {
-                        _logger.LogInformation("Skipping {hostname} since cert already exists and is valid", domain);
-                        continue;
+                        var cert = await _selector.TryGetAsync(domain);
+                        if (cert != null && cert.NotAfter > _clock.Now.DateTime + daysInAdvance.Value)
+                        {
+                            _logger.LogInformation("Skipping {hostname} since cert already exists and is valid", domain);
+                            continue;
+                        }
                     }
-                }
 
-                try
-                {
-                    _logger.LogInformation("Creating certificate for {hostname}", domainCert.Domains);
+                    try
+                    {
+                        _logger.LogInformation("Creating certificate for {hostname}", domainCert.Domains);
 
-                    var newCert = await _acmeCertificateFactory.CreateCertificateAsync(domainCert.Domains, cancellationToken);
+                        var newCert = await _acmeCertificateFactory.CreateCertificateAsync(domainCert.Domains, cancellationToken);
 
-                    _logger.LogInformation("Created certificate {subjectName} ({thumbprint})",
-                        newCert.Subject,
-                        newCert.Thumbprint);
+                        _logger.LogInformation("Created certificate {subjectName} ({thumbprint})",
+                            newCert.Subject,
+                            newCert.Thumbprint);
 
-                    // Immediately add to selector incase of overlap between domain sources.
-                    await _selector.AddAsync(newCert);
+                        // Immediately add to selector incase of overlap between domain sources.
+                        await _selector.AddAsync(newCert);
 
-                    saveTasks.Add(SaveCertificateAsync(newCert, cancellationToken));
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostnames}", domainCert.Domains);
-                    throw;
+                        saveTasks.Add(SaveCertificateAsync(newCert, cancellationToken));
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(0, ex, "Failed to automatically create a certificate for {hostnames}", domainCert.Domains);
+                        throw;
+                    }
                 }
             }
         }
-
         await Task.WhenAll(saveTasks);
 
         return MoveTo<CheckForRenewalState>();
