@@ -35,8 +35,8 @@ public class X509CertStoreTests : IDisposable
     }
 
     [SkippableFact]
-    [SkipOnWindowsCIBuild(SkipReason =
-        "On Windows in CI, adding certs to store doesn't work for unclear reasons.")]
+    [SkipOnNonLinuxCIBuild(SkipReason =
+        "On Windows or MacOS in CI, adding certs to store doesn't work for unclear reasons.")]
     public async Task ItFindsCertByCommonNameAsync()
     {
         var commonName = "x509store.read.test.natemcmaster.com";
@@ -62,8 +62,8 @@ public class X509CertStoreTests : IDisposable
     }
 
     [SkippableFact]
-    [SkipOnWindowsCIBuild(SkipReason =
-        "On Windows in CI, adding certs to store doesn't work for unclear reasons.")]
+    [SkipOnNonLinuxCIBuild(SkipReason =
+        "On Windows or MacOS in CI, adding certs to store doesn't work for unclear reasons.")]
     public async Task ItSavesCertificates()
     {
         var commonName = "x509store.save.test.natemcmaster.com";
