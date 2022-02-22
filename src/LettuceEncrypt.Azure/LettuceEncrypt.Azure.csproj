@@ -10,7 +10,7 @@
 
 See https://nuget.org/packages/LettuceEncrypt for more details.
     </PackageDescription>
-    <PackageId>LettuceEncrypt-Archon.Azure</PackageId>
+    <PackageId>LettuceEncryptMultiDomains.Azure</PackageId>
     <DefineConstants>$(DefineConstants);FEATURE_VALIDATE_DATA_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
 

@@ -17,7 +17,7 @@ renew the certificate automatically when the expiration date is near.
 This only works with Kestrel, which is the default server configuration for ASP.NET Core projects. Other servers, such as IIS and nginx, are not supported.
     </PackageDescription>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageId>LettuceEncrypt-Archon</PackageId>
+    <PackageId>LettuceEncryptMultiDomains</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
