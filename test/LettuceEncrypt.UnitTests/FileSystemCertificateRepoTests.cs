@@ -4,6 +4,7 @@
 #nullable enable
 using System.Security.Cryptography.X509Certificates;
 using LettuceEncrypt.Internal;
+using McMaster.Extensions.Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Internal;
@@ -15,7 +16,7 @@ using static TestUtils;
 
 public class FileSystemCertificateRepoTests
 {
-    [Theory]
+    [SkippableTheory]
     [InlineData(null)]
     [InlineData("")]
     [SkipOnMacOSCIBuild(SkipReason = "On MacOS in CI, saving certs to store doesn't work for unclear reasons.")]
