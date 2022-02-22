@@ -98,11 +98,11 @@ jobs:
             Packages have been posted to these feeds:
 
             #### NuGet.org
-            https://nuget.org/packages/LettuceEncrypt/${{ env.PACKAGE_VERSION }}
-            https://nuget.org/packages/LettuceEncrypt.Azure/${{ env.PACKAGE_VERSION }}
+            https://nuget.org/packages/LettuceEncryptMultiDomains/${{ env.PACKAGE_VERSION }}
+            https://nuget.org/packages/LettuceEncryptMultiDomains.Azure/${{ env.PACKAGE_VERSION }}
 
             #### GitHub Package Registry
-            https://github.com/natemcmaster?tab=packages&repo_name=LettuceEncrypt
+            https://github.com/benschop-it?tab=packages&repo_name=LettuceEncrypt-Benschop-IT
 
           draft: true
           prerelease: ${{ env.IS_STABLE_BUILD == 'false' }} # Example: v3.1.0-beta
